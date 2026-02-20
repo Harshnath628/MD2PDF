@@ -1,5 +1,4 @@
 import { marked } from 'marked';
-import html2pdf from 'html2pdf.js';
 
 // Marked config — tables, breaks, etc.
 marked.setOptions({
@@ -126,7 +125,7 @@ fileInput.addEventListener('change', (e) => {
   fileInput.value = '';
 });
 
-// Download PDF
+// Download PDF — lazy load html2pdf for faster initial load
 btnDownload.addEventListener('click', async () => {
   const md = inputEl.value?.trim();
   if (!md) {
@@ -138,6 +137,7 @@ btnDownload.addEventListener('click', async () => {
   btnDownload.disabled = true;
 
   try {
+    const { default: html2pdf } = await import('html2pdf.js');
     const isCompact = document.querySelector('input[name="pdf-style"]:checked')?.value === 'compact';
     let html = marked.parse(md);
     if (typeof html !== 'string') html = await html;
@@ -169,6 +169,40 @@ btnDownload.addEventListener('click', async () => {
     btnDownload.disabled = false;
   }
 });
+
+// Mobile tab switching
+const mainEl = document.querySelector('.main');
+const tabEdit = document.getElementById('tab-edit');
+const tabPreview = document.getElementById('tab-preview');
+
+function updateMobileLayout() {
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  mainEl?.classList.toggle('panels-stacked', isMobile);
+  if (isMobile) {
+    const activeView = document.querySelector('.view-tab--active')?.dataset.view || 'edit';
+    document.querySelectorAll('.panel').forEach((p) => {
+      p.classList.toggle('panel--visible', p.dataset.panel === activeView);
+    });
+  } else {
+    document.querySelectorAll('.panel').forEach((p) => p.classList.add('panel--visible'));
+  }
+}
+
+function switchView(view) {
+  document.querySelectorAll('.view-tab').forEach((t) => {
+    t.classList.toggle('view-tab--active', t.dataset.view === view);
+    t.setAttribute('aria-selected', t.dataset.view === view ? 'true' : 'false');
+  });
+  document.querySelectorAll('.panel').forEach((p) => {
+    p.classList.toggle('panel--visible', p.dataset.panel === view);
+  });
+}
+
+tabEdit?.addEventListener('click', () => switchView('edit'));
+tabPreview?.addEventListener('click', () => switchView('preview'));
+
+window.addEventListener('resize', updateMobileLayout);
+updateMobileLayout();
 
 // Init
 renderPreview(inputEl.value);

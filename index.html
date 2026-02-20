@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0f10" />
+  <meta name="description" content="Convert Markdown to PDF for free. Works on phone and laptop. 100% client-side, private." />
   <title>Markdown to PDF | Free Online Converter</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,7 +28,13 @@
     </header>
 
     <main class="main">
-      <div class="editor-panel">
+      <!-- Mobile tabs: Edit | Preview -->
+      <div class="view-tabs" role="tablist" aria-label="Switch between edit and preview">
+        <button type="button" class="view-tab view-tab--active" role="tab" aria-selected="true" data-view="edit" id="tab-edit">Edit</button>
+        <button type="button" class="view-tab" role="tab" aria-selected="false" data-view="preview" id="tab-preview">Preview</button>
+      </div>
+
+      <div class="editor-panel panel" data-panel="edit">
         <div class="panel-header">
           <h2>Markdown Input</h2>
           <div class="panel-actions">
@@ -50,7 +58,7 @@
 | Row   | Data   |"></textarea>
       </div>
 
-      <div class="preview-panel">
+      <div class="preview-panel panel" data-panel="preview">
         <div class="panel-header">
           <h2>Live Preview</h2>
           <button type="button" class="btn btn-primary" id="btn-download" title="Download PDF">
