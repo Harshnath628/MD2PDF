@@ -1,0 +1,497 @@
+/* ========================================
+   Markdown to PDF — Distinctive Design
+   Theme: Editorial / Technical Doc
+   ======================================== */
+
+:root {
+  /* Palette: Warm paper + slate accents */
+  --bg-primary: #0f0f10;
+  --bg-secondary: #171719;
+  --bg-tertiary: #1e1e21;
+  --bg-panel: #161618;
+  --bg-input: #0d0d0e;
+
+  --text-primary: #e8e6e3;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --accent-muted: rgba(245, 158, 11, 0.15);
+
+  --border: #2a2a2e;
+  --border-focus: #f59e0b;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Outfit', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245, 158, 11, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(245, 158, 11, 0.04), transparent);
+}
+
+/* Layout */
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.logo-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--accent);
+}
+
+.logo h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Main */
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Panels */
+.editor-panel,
+.preview-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.panel-header h2 {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.panel-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-file {
+  cursor: pointer;
+}
+
+/* Textarea */
+#markdown-input {
+  flex: 1;
+  min-height: 420px;
+  width: 100%;
+  padding: 1.25rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: none;
+  resize: none;
+  outline: none;
+}
+
+#markdown-input::placeholder {
+  color: var(--text-muted);
+}
+
+#markdown-input:focus {
+  box-shadow: inset 0 0 0 2px var(--border-focus);
+}
+
+/* Preview */
+.preview-container {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
+  min-height: 420px;
+  background: #fafaf9;
+  color: #1a1a1a;
+}
+
+.preview-content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Markdown body — PDF-friendly styling */
+.markdown-body {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.markdown-body h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.markdown-body h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-body p {
+  margin-bottom: 0.75rem;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.markdown-body li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-body strong {
+  font-weight: 600;
+}
+
+.markdown-body em {
+  font-style: italic;
+}
+
+.markdown-body code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  background: #f0f0ee;
+  border-radius: 4px;
+}
+
+.markdown-body pre {
+  margin: 0.75rem 0;
+  padding: 1rem;
+  background: #1a1a1a;
+  color: #e8e8e8;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.markdown-body pre code {
+  background: none;
+  padding: 0;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid #e5e5e5;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.markdown-body th {
+  background: #f5f5f4;
+  font-weight: 600;
+}
+
+.markdown-body tr:nth-child(even) {
+  background: #fafaf9;
+}
+
+.markdown-body blockquote {
+  margin: 0.75rem 0;
+  padding-left: 1rem;
+  border-left: 4px solid var(--accent);
+  color: #4b5563;
+}
+
+.markdown-body hr {
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* Page breaks for PDF */
+.markdown-body h1,
+.markdown-body h2 {
+  page-break-after: avoid;
+}
+
+.markdown-body table {
+  page-break-inside: avoid;
+}
+
+/* PDF style selector */
+.pdf-style-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.pdf-style-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.pdf-style-options {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pdf-style-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s, color 0.15s;
+}
+
+.pdf-style-option:hover {
+  color: var(--text-primary);
+  background: var(--accent-muted);
+}
+
+.pdf-style-option input {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.pdf-style-option input:checked + span {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.pdf-style-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+@media (max-width: 600px) {
+  .pdf-style-hint {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.25rem;
+  }
+}
+
+/* Compact PDF overrides — applied to temp div during export */
+.markdown-body--compact {
+  font-size: 9.5pt !important;
+  line-height: 1.35 !important;
+}
+
+.markdown-body--compact h1 {
+  font-size: 1.35rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.35rem !important;
+  padding-bottom: 0.15rem !important;
+}
+
+.markdown-body--compact h2 {
+  font-size: 1.15rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.markdown-body--compact h3 {
+  font-size: 1rem !important;
+  margin-top: 0.4rem !important;
+  margin-bottom: 0.2rem !important;
+}
+
+.markdown-body--compact p {
+  margin-bottom: 0.35rem !important;
+}
+
+.markdown-body--compact ul,
+.markdown-body--compact ol {
+  margin-bottom: 0.35rem !important;
+  padding-left: 1.2rem !important;
+}
+
+.markdown-body--compact li {
+  margin-bottom: 0.1rem !important;
+}
+
+.markdown-body--compact table {
+  margin: 0.35rem 0 !important;
+  font-size: 0.8rem !important;
+}
+
+.markdown-body--compact th,
+.markdown-body--compact td {
+  padding: 0.25rem 0.5rem !important;
+}
+
+.markdown-body--compact blockquote {
+  margin: 0.35rem 0 !important;
+  padding-left: 0.75rem !important;
+}
+
+.markdown-body--compact hr {
+  margin: 0.6rem 0 !important;
+}
+
+.markdown-body--compact pre {
+  margin: 0.35rem 0 !important;
+  padding: 0.6rem !important;
+  font-size: 0.8rem !important;
+}
+
+.markdown-body--compact code {
+  font-size: 0.85em !important;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Loading state */
+.btn-primary.loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.btn-primary.loading svg {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "md-to-pdf",
+  "version": "1.0.0",
+  "description": "Convert Markdown to PDF in the browser - like markdowntopdf.com",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "marked": "^15.0.2",
+    "html2pdf.js": "^0.10.2"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
