@@ -14,20 +14,100 @@
 <body>
   <div class="app">
     <header class="header">
-      <div class="logo">
-        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-          <polyline points="10 9 9 9 8 9"/>
-        </svg>
-        <h1>Markdown to PDF</h1>
+      <div class="header-left">
+        <div class="logo">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <h1>Markdown to PDF</h1>
+        </div>
+        <p class="tagline">Convert your Markdown to beautiful, print-ready PDFs — free, private, and entirely in your browser</p>
       </div>
-      <p class="tagline">Convert your Markdown to beautiful, print-ready PDFs — free, private, and entirely in your browser</p>
+      <div class="mode-switch" role="group" aria-label="Document mode">
+        <input type="radio" name="app-mode" id="app-mode-standard" value="standard" checked />
+        <input type="radio" name="app-mode" id="app-mode-practical" value="practical" />
+        <label for="app-mode-standard" class="mode-switch__label">Standard</label>
+        <label for="app-mode-practical" class="mode-switch__label">Practical</label>
+      </div>
     </header>
 
     <main class="main">
+      <div id="practical-file-panel" class="practical-file-panel practical-file-panel--hidden" aria-hidden="true">
+        <div class="practical-section">
+          <button type="button" class="practical-section-toggle" id="btn-toggle-my-details" aria-expanded="false">
+            My details (name, roll no, section, institution…)
+          </button>
+          <div id="my-details-fields" class="practical-fields" hidden>
+            <div class="practical-row">
+              <label>Name</label>
+              <input type="text" id="pf-student-name" placeholder="e.g. Harsh Nath Tripathi" />
+            </div>
+            <div class="practical-row">
+              <label>Roll No.</label>
+              <input type="text" id="pf-roll-no" placeholder="e.g. 24293916101" />
+            </div>
+            <div class="practical-row">
+              <label>Section</label>
+              <input type="text" id="pf-section" placeholder="e.g. CSE-A" />
+            </div>
+            <div class="practical-row">
+              <label>Year</label>
+              <input type="text" id="pf-year" placeholder="e.g. 2nd Year" />
+            </div>
+            <div class="practical-row">
+              <label>Degree</label>
+              <input type="text" id="pf-degree" placeholder="e.g. B.TECH(CSE)" />
+            </div>
+            <div class="practical-row">
+              <label>Institution</label>
+              <input type="text" id="pf-institution" placeholder="e.g. UNIVERSITY OF DELHI" />
+            </div>
+            <div class="practical-row">
+              <label>Faculty</label>
+              <input type="text" id="pf-faculty" placeholder="e.g. FACULTY OF TECHNOLOGY" />
+            </div>
+            <div class="practical-row">
+              <label>Department</label>
+              <input type="text" id="pf-department" placeholder="e.g. COMPUTER SCIENCE & ENGINEERING" />
+            </div>
+            <div class="practical-row">
+              <label>Session</label>
+              <input type="text" id="pf-session" placeholder="e.g. 2024-2028" />
+            </div>
+          </div>
+        </div>
+        <div class="practical-section">
+          <span class="practical-section-label">This file (change per subject):</span>
+          <div class="practical-fields practical-fields--inline">
+            <div class="practical-row">
+              <label>Subject</label>
+              <input type="text" id="pf-subject" placeholder="e.g. ADA Practical" />
+            </div>
+            <div class="practical-row">
+              <label>Teacher name</label>
+              <input type="text" id="pf-teacher-name" placeholder="e.g. Dr. Juhi Jain" />
+            </div>
+            <div class="practical-row">
+              <label>Teacher title</label>
+              <input type="text" id="pf-teacher-title" placeholder="e.g. Assistant Professor" />
+            </div>
+            <div class="practical-row">
+              <label>Teacher dept</label>
+              <input type="text" id="pf-teacher-dept" placeholder="e.g. CSE Department" />
+            </div>
+          </div>
+        </div>
+        <div class="practical-actions">
+          <button type="button" class="btn btn-ghost" id="btn-load-practical-template" title="Load template with your details">
+            Load practical file template
+          </button>
+          <a href="/PRACTICAL_FILE_RULES.md" class="btn btn-ghost" id="btn-open-rules" target="_blank" rel="noopener">Open rules (MD)</a>
+        </div>
+      </div>
       <!-- Mobile tabs: Edit | Preview -->
       <div class="view-tabs" role="tablist" aria-label="Switch between edit and preview">
         <button type="button" class="view-tab view-tab--active" role="tab" aria-selected="true" data-view="edit" id="tab-edit">Edit</button>
@@ -38,6 +118,7 @@
         <div class="panel-header">
           <h2>Markdown Input</h2>
           <div class="panel-actions">
+            <button type="button" class="btn btn-ghost" id="btn-format-ref" title="Insert formatting reference">Formatting ref</button>
             <button type="button" class="btn btn-ghost" id="btn-sample" title="Load sample">Load sample</button>
             <button type="button" class="btn btn-ghost" id="btn-clear" title="Clear">Clear</button>
             <label class="btn btn-ghost btn-file">
@@ -46,16 +127,20 @@
             </label>
           </div>
         </div>
-        <textarea id="markdown-input" placeholder="Type or paste your Markdown here...
+        <textarea id="markdown-input" placeholder="Type or paste your Markdown here…
 
-# Hello World
-**Bold** and *italic* text
-- Bullet points
-- [ ] Checkboxes
-
+# Heading 1
+## Heading 2 | ### Heading 3
+**Bold** *italic* ~~strikethrough~~ `code`
+- Bullet list
+- [ ] Unchecked  - [x] Checked
+1. Numbered list
+> Blockquote
+---
 | Table | Header |
 |-------|--------|
-| Row   | Data   |"></textarea>
+| Row   | Data   |
+\`inline code\` or fenced \`\`\`code block\`\`\`"></textarea>
       </div>
 
       <div class="preview-panel panel" data-panel="preview">

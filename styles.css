@@ -75,6 +75,144 @@ body {
   gap: 2rem;
 }
 
+/* Mode switch — compact, top-right (theme-switch style) */
+.mode-switch {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.mode-switch input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mode-switch__label {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.mode-switch__label:hover {
+  color: var(--text-primary);
+}
+
+.mode-switch input#app-mode-standard:checked ~ .mode-switch__label:first-of-type,
+.mode-switch input#app-mode-practical:checked ~ .mode-switch__label:last-of-type {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+/* Practical File panel — only visible when Practical File mode is selected */
+.practical-file-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.practical-file-panel--hidden {
+  display: none !important;
+}
+
+.practical-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.practical-section-toggle {
+  width: 100%;
+  padding: 0.5rem 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.practical-section-toggle:hover {
+  text-decoration: underline;
+}
+
+.practical-section-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.practical-fields {
+  display: grid;
+  gap: 0.5rem 1rem;
+}
+
+.practical-fields--inline {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.practical-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.practical-row label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.practical-row input {
+  padding: 0.5rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.practical-row input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px var(--accent-muted);
+}
+
+.practical-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* PDF page break (used when generating PDF in Practical File mode) */
+.page-break-before {
+  page-break-before: always;
+}
+
+.page-break-before:first-child {
+  page-break-before: avoid;
+}
+
 /* Mobile view tabs — hidden on desktop */
 .view-tabs {
   display: none;
@@ -135,10 +273,19 @@ body {
   to { opacity: 1; }
 }
 
-/* Header */
+/* Header — logo left, mode switch right */
 .header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   padding: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  text-align: left;
+  min-width: 0;
 }
 
 @media (max-width: 768px) {
@@ -152,7 +299,7 @@ body {
 
   .tagline {
     font-size: 0.9rem;
-    padding: 0 0.5rem;
+    padding: 0;
   }
 }
 
@@ -160,7 +307,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .logo-icon {
@@ -180,7 +327,7 @@ body {
   color: var(--text-secondary);
   font-weight: 400;
   max-width: 480px;
-  margin: 0 auto;
+  margin: 0;
 }
 
 /* Main */
@@ -385,6 +532,15 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+}
+
 .markdown-body p {
   margin-bottom: 0.75rem;
 }
@@ -395,8 +551,39 @@ body {
   padding-left: 1.5rem;
 }
 
+.markdown-body ul ul,
+.markdown-body ol ol,
+.markdown-body ul ol,
+.markdown-body ol ul {
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+}
+
 .markdown-body li {
   margin-bottom: 0.25rem;
+}
+
+/* Task list (GFM checkboxes) — PDF-friendly; marked outputs <li><input type=checkbox> text</li> */
+.markdown-body ul:has(li input[type="checkbox"]) {
+  list-style: none;
+  padding-left: 0.5rem;
+}
+
+.markdown-body li:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.markdown-body li input[type="checkbox"] {
+  margin: 0;
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  accent-color: #1a1a1a;
+  cursor: default;
+  vertical-align: middle;
 }
 
 .markdown-body strong {
@@ -405,6 +592,21 @@ body {
 
 .markdown-body em {
   font-style: italic;
+}
+
+.markdown-body del,
+.markdown-body s {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
+.markdown-body a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.markdown-body a:hover {
+  text-decoration: underline;
 }
 
 .markdown-body code {
@@ -467,7 +669,9 @@ body {
 
 /* Page breaks for PDF */
 .markdown-body h1,
-.markdown-body h2 {
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
   page-break-after: avoid;
 }
 
@@ -562,6 +766,14 @@ body {
   font-size: 1rem !important;
   margin-top: 0.4rem !important;
   margin-bottom: 0.2rem !important;
+}
+
+.markdown-body--compact h4,
+.markdown-body--compact h5,
+.markdown-body--compact h6 {
+  font-size: 0.95rem !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.15rem !important;
 }
 
 .markdown-body--compact p {
