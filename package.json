@@ -9,8 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "marked": "^15.0.2",
-    "html2pdf.js": "^0.10.2"
+    "html-docx-js": "^0.3.1",
+    "html2pdf.js": "^0.10.2",
+    "marked": "^15.0.2"
   },
   "devDependencies": {
     "vite": "^6.0.0"

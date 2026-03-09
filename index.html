@@ -146,14 +146,32 @@
       <div class="preview-panel panel" data-panel="preview">
         <div class="panel-header">
           <h2>Live Preview</h2>
-          <button type="button" class="btn btn-primary" id="btn-download" title="Download PDF">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Download PDF
-          </button>
+          <div class="download-buttons">
+            <button type="button" class="btn btn-primary" id="btn-download" title="Download PDF">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download PDF
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-download-word" title="Download Word (.docx)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <path d="M8 13h2m4 0h2m-6 4h2m4 0h2"/>
+                <path d="M8 17h2m4 0h2"/>
+              </svg>
+              Download Word
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-print-pdf" title="Open print dialog — choose Save as PDF for selectable text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+              </svg>
+              Print to PDF
+            </button>
+          </div>
         </div>
         <div class="pdf-style-bar">
           <span class="pdf-style-label">PDF style:</span>
@@ -167,7 +185,7 @@
               <span>Compact</span>
             </label>
           </div>
-          <span class="pdf-style-hint">Compact = denser layout, ideal for summaries</span>
+          <span class="pdf-style-hint">Compact = denser layout. Use <strong>Print to PDF</strong> for copyable text.</span>
         </div>
         <div id="preview-container" class="preview-container">
           <div id="preview-content" class="preview-content markdown-body"></div>

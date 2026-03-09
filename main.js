@@ -253,6 +253,8 @@ const btnFormatRef = document.getElementById('btn-format-ref');
 const btnSample = document.getElementById('btn-sample');
 const btnClear = document.getElementById('btn-clear');
 const btnDownload = document.getElementById('btn-download');
+const btnDownloadWord = document.getElementById('btn-download-word');
+const btnPrintPdf = document.getElementById('btn-print-pdf');
 const fileInput = document.getElementById('file-input');
 const practicalPanel = document.getElementById('practical-file-panel');
 const modeRadios = document.querySelectorAll('input[name="app-mode"]');
@@ -339,12 +341,179 @@ fileInput.addEventListener('change', (e) => {
   fileInput.value = '';
 });
 
-// Download PDF — lazy load html2pdf for faster initial load
+// Load html-docx-js from CDN (once) for Word export
+function loadHtmlDocxScript() {
+  if (typeof window.htmlDocx !== 'undefined') return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Word export library'));
+    document.head.appendChild(script);
+  });
+}
+
+// Fix table alignment for Word: convert align attribute to inline style (Word respects style better)
+function fixWordTableAlignment(html) {
+  return html.replace(/<(th|td)(\s+)align="(left|center|right)"([^>]*)>/gi, (_, tag, space, align, rest) => {
+    return `<${tag}${space}style="text-align: ${align}"${rest}>`;
+  });
+}
+
+// Build full HTML document for Word (library requires DOCTYPE + html + body)
+function buildFullHtmlForWord(bodyContent, isCompact) {
+  const aligned = fixWordTableAlignment(bodyContent);
+  const style = `
+    body { font-family: Calibri, 'Segoe UI', sans-serif; font-size: 11pt; line-height: 1.5; color: #1a1a1a; margin: 1in; }
+    h1 { font-size: 18pt; margin-top: 12pt; margin-bottom: 6pt; border-bottom: 1pt solid #ccc; }
+    h2 { font-size: 14pt; margin-top: 12pt; margin-bottom: 4pt; }
+    h3, h4, h5, h6 { font-size: 12pt; margin-top: 8pt; margin-bottom: 2pt; }
+    p { margin-bottom: 6pt; }
+    ul, ol { margin: 6pt 0; padding-left: 24pt; }
+    li { margin-bottom: 2pt; }
+    table { border-collapse: collapse; width: 100%; margin: 8pt 0; font-size: 10pt; table-layout: fixed; }
+    th, td { border: 1pt solid #333; padding: 6pt 10pt; vertical-align: top; }
+    th { background: #f0f0f0; font-weight: bold; text-align: left; }
+    td { text-align: left; }
+    pre { background: #f5f5f5; padding: 8pt; overflow-x: auto; font-family: Consolas, monospace; font-size: 9pt; margin: 8pt 0; }
+    code { font-family: Consolas, monospace; background: #f0f0f0; padding: 1pt 4pt; font-size: 9pt; }
+    blockquote { margin: 8pt 0; padding-left: 12pt; border-left: 3pt solid #f59e0b; color: #444; }
+    hr { border: none; border-top: 1pt solid #ccc; margin: 12pt 0; }
+  `;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${style}</style></head><body class="markdown-body">${aligned}</body></html>`;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Download Word (.docx) — same content as PDF, MS Word compatible
+btnDownloadWord?.addEventListener('click', async () => {
+  const md = inputEl.value?.trim();
+  if (!md) {
+    alert('Please enter some Markdown first.');
+    return;
+  }
+
+  btnDownloadWord.classList.add('loading');
+  btnDownloadWord.disabled = true;
+
+  try {
+    await loadHtmlDocxScript();
+    const isCompact = document.querySelector('input[name="pdf-style"]:checked')?.value === 'compact';
+    const practicalMode = isPracticalMode();
+    let html = marked.parse(md);
+    if (typeof html !== 'string') html = await html;
+    const fullHtml = buildFullHtmlForWord(html, isCompact);
+    const blob = window.htmlDocx.asBlob(fullHtml);
+    const subjectRaw = practicalMode ? (getPracticalDetails().SUBJECT || '').replace(/\s+/g, '_') : '';
+    const baseName = subjectRaw ? (subjectRaw.endsWith('_Practical') ? subjectRaw : subjectRaw + '_Practical') : 'markdown-export';
+    downloadBlob(blob, baseName + '.docx');
+  } catch (err) {
+    console.error(err);
+    alert('Word export failed. Check the console for details.');
+  } finally {
+    btnDownloadWord.classList.remove('loading');
+    btnDownloadWord.disabled = false;
+  }
+});
+
+// Build HTML for Print-to-PDF (async in case marked returns a Promise)
+async function getRenderedHtmlForPrint() {
+  const md = inputEl.value?.trim();
+  if (!md) return null;
+  const isCompact = document.querySelector('input[name="pdf-style"]:checked')?.value === 'compact';
+  const practicalMode = isPracticalMode();
+  let html = marked.parse(md);
+  if (typeof html !== 'string') html = await html;
+  const temp = document.createElement('div');
+  temp.className = 'preview-content markdown-body' + (isCompact ? ' markdown-body--compact' : '');
+  temp.innerHTML = html;
+  if (practicalMode) {
+    temp.querySelectorAll('h2').forEach((h2) => h2.classList.add('page-break-before'));
+  }
+  temp.style.width = '210mm';
+  temp.style.padding = isCompact ? '12mm' : '20mm';
+  temp.style.background = '#fff';
+  temp.style.color = '#1a1a1a';
+  temp.style.fontSize = isCompact ? '9.5pt' : '11pt';
+  temp.style.lineHeight = isCompact ? '1.35' : '1.5';
+  return { html: temp.innerHTML };
+}
+
+// Threshold: above this length, Download PDF uses Print to PDF (avoids canvas limit / blank PDF)
+const LARGE_DOC_CHAR_THRESHOLD = 50000;
+
+async function openPrintToPdf() {
+  const data = await getRenderedHtmlForPrint();
+  if (!data) return false;
+  const printStyles = `
+    body { margin: 0; background: #fff; color: #1a1a1a; font-family: 'Segoe UI', sans-serif; }
+    .markdown-body { max-width: 210mm; margin: 0 auto; padding: 20mm; box-sizing: border-box; font-size: 11pt; line-height: 1.5; }
+    .markdown-body h1 { font-size: 1.75rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid #ccc; }
+    .markdown-body h2 { font-size: 1.35rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; }
+    .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 { font-size: 1.1rem; font-weight: 600; margin-top: 0.75rem; margin-bottom: 0.3rem; }
+    .markdown-body p { margin-bottom: 0.5rem; }
+    .markdown-body ul, .markdown-body ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+    .markdown-body li { margin-bottom: 0.2rem; }
+    .markdown-body table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 10pt; }
+    .markdown-body th, .markdown-body td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
+    .markdown-body th { background: #f0f0f0; font-weight: 600; }
+    .markdown-body pre { background: #f5f5f5; padding: 8px; margin: 0.5rem 0; font-size: 9pt; overflow-x: auto; }
+    .markdown-body code { font-family: monospace; background: #f0f0f0; padding: 1px 4px; font-size: 0.9em; }
+    .markdown-body blockquote { margin: 0.5rem 0; padding-left: 1rem; border-left: 3px solid #f59e0b; color: #444; }
+    .markdown-body hr { border: none; border-top: 1px solid #ccc; margin: 1rem 0; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .markdown-body { padding: 15mm; }
+      .page-break-before { page-break-before: always; }
+      .page-break-before:first-child { page-break-before: avoid; }
+      h1, h2, h3, h4 { page-break-after: avoid; }
+      table { page-break-inside: avoid; }
+    }
+  `;
+  const doc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print to PDF</title><style>${printStyles}</style></head><body class="markdown-body">${data.html}</body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) {
+    alert('Please allow pop-ups to use Print to PDF.');
+    return;
+  }
+  w.document.write(doc);
+  w.document.close();
+  w.focus();
+  w.onload = () => {
+    w.setTimeout(() => {
+      w.print();
+    }, 250);
+  };
+  return true;
+}
+
+// Print to PDF button — opens print dialog; choose "Save as PDF" for selectable/copyable text
+btnPrintPdf?.addEventListener('click', async () => {
+  const ok = await openPrintToPdf();
+  if (!ok) alert('Please enter some Markdown first.');
+});
+
+// Download PDF — uses html2pdf for short docs; automatically uses Print to PDF for long docs (avoids blank PDF)
 btnDownload.addEventListener('click', async () => {
   const md = inputEl.value?.trim();
   if (!md) {
     alert('Please enter some Markdown first.');
     return;
+  }
+
+  // Long documents exceed canvas limits and produce blank PDF — use Print to PDF instead
+  if (md.length > LARGE_DOC_CHAR_THRESHOLD) {
+    const ok = await openPrintToPdf();
+    if (ok) {
+      return; // Print window opened, no need for html2pdf
+    }
   }
 
   btnDownload.classList.add('loading');
