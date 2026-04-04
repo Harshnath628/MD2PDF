@@ -685,6 +685,22 @@ body {
   border-top: 1px solid #e5e5e5;
 }
 
+/* KaTeX — match dark preview panel; PDF export uses default (dark on white) */
+.preview-content .markdown-body .katex {
+  color: var(--text-primary);
+}
+
+.preview-content .markdown-body .katex-display,
+.preview-content .markdown-body .md-math-display {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.preview-content .markdown-body .md-math-inline .katex {
+  color: var(--text-primary);
+}
+
 /* Page breaks for PDF */
 .markdown-body h1,
 .markdown-body h2,
@@ -843,6 +859,15 @@ body {
   padding: 1rem;
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+.footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
 }
 
 /* Loading state */

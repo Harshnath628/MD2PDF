@@ -1,10 +1,170 @@
 import { marked } from 'marked';
+import katex from 'katex';
+import renderMathInElement from 'katex/contrib/auto-render';
+import 'katex/dist/katex.min.css';
 
 // Marked config — tables, breaks, etc.
 marked.setOptions({
   gfm: true,
   breaks: true,
 });
+
+/** KaTeX version (keep in sync with package.json) — used for print/Word stylesheet URLs */
+const KATEX_VERSION = '0.16.42';
+
+/**
+ * With breaks:true, single newlines become <br>, so $$ … $$ split across lines ends up as
+ * separate text nodes and KaTeX auto-render never sees a matching pair. We pull display
+ * math out in markdown, inject a placeholder div, then katex.render() after parse.
+ */
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+function base64ToUtf8(b64) {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function mathBlockPlaceholder(tex) {
+  const b64 = utf8ToBase64(tex.trim());
+  return `\n\n<div class="md-math-display" data-tex-b64="${b64}"></div>\n\n`;
+}
+
+function inlineMathPlaceholder(tex) {
+  const b64 = utf8ToBase64(tex.trim());
+  return `<span class="md-math-inline" data-tex-b64="${b64}"></span>`;
+}
+
+/** Opening fence: 0–3 spaces, then 3+ backticks or tildes (CommonMark), rest of line is info. */
+function parseFenceOpen(line) {
+  const m = line.match(/^(\s{0,3})(`{3,}|~{3,})(.*)$/);
+  if (!m) return null;
+  const fence = m[2];
+  if (fence.includes('`') && fence.includes('~')) return null;
+  return { indent: m[1], char: fence[0], len: fence.length };
+}
+
+/** Closing fence: same indent, same char, run length ≥ opening. */
+function parseFenceClose(line, open) {
+  const m = line.match(/^(\s{0,3})(`{3,}|~{3,})\s*$/);
+  if (!m) return false;
+  if (m[1] !== open.indent) return false;
+  const f = m[2];
+  if (f[0] !== open.char) return false;
+  return f.length >= open.len;
+}
+
+/**
+ * Split into { type: 'text' | 'fence', content }.
+ * Unlike a naive ```…``` regex, this ignores backticks in headings or mid-line (e.g. ## text ``` word).
+ */
+function splitByCodeFences(md) {
+  const lines = md.split('\n');
+  const regions = [];
+  const textLines = [];
+  let i = 0;
+
+  function flushText() {
+    if (textLines.length) {
+      regions.push({ type: 'text', content: textLines.join('\n') });
+      textLines.length = 0;
+    }
+  }
+
+  while (i < lines.length) {
+    const open = parseFenceOpen(lines[i]);
+    if (!open) {
+      textLines.push(lines[i]);
+      i++;
+      continue;
+    }
+    flushText();
+    const fenceBuf = [lines[i]];
+    i++;
+    while (i < lines.length) {
+      fenceBuf.push(lines[i]);
+      if (parseFenceClose(lines[i], open)) {
+        i++;
+        break;
+      }
+      i++;
+    }
+    regions.push({ type: 'fence', content: fenceBuf.join('\n') });
+  }
+  flushText();
+  return regions;
+}
+
+function preprocessMathInTextRegion(text) {
+  return text
+    .replace(/\$\$([\s\S]*?)\$\$/g, (_, body) => mathBlockPlaceholder(body))
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_, body) => mathBlockPlaceholder(body))
+    .replace(/\\\(([\s\S]*?)\\\)/g, (_, body) => inlineMathPlaceholder(body));
+}
+
+function preprocessDisplayMath(md) {
+  if (!md) return md;
+  md = md.replace(/\r\n/g, '\n');
+  return splitByCodeFences(md)
+    .map((r) => (r.type === 'fence' ? r.content : preprocessMathInTextRegion(r.content)))
+    .join('\n');
+}
+
+function markdownToHtml(md) {
+  return marked.parse(preprocessDisplayMath(md));
+}
+
+/** Display $$ … $$ blocks (see preprocessDisplayMath). */
+function renderDisplayMathBlocks(root) {
+  if (!root) return;
+  root.querySelectorAll('.md-math-display').forEach((el) => {
+    const b64 = el.getAttribute('data-tex-b64');
+    if (!b64) return;
+    try {
+      katex.render(base64ToUtf8(b64), el, { displayMode: true, throwOnError: false });
+    } catch (err) {
+      console.error(err);
+    }
+  });
+}
+
+/** \\(...\\) becomes spans before parse — Markdown would strip backslashes otherwise. */
+function renderInlineMathPlaceholders(root) {
+  if (!root) return;
+  root.querySelectorAll('.md-math-inline').forEach((el) => {
+    const b64 = el.getAttribute('data-tex-b64');
+    if (!b64) return;
+    try {
+      katex.render(base64ToUtf8(b64), el, { displayMode: false, throwOnError: false });
+    } catch (err) {
+      console.error(err);
+    }
+  });
+}
+
+/** $…$ only — $$ / \\[ \\] / \\(...\\) handled in preprocess + render above. */
+const KATEX_AUTO_RENDER_OPTIONS = {
+  delimiters: [{ left: '$', right: '$', display: false }],
+  throwOnError: false,
+  strict: false,
+};
+
+function typesetMath(root) {
+  if (!root) return;
+  try {
+    renderDisplayMathBlocks(root);
+    renderInlineMathPlaceholders(root);
+    renderMathInElement(root, KATEX_AUTO_RENDER_OPTIONS);
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 // --- Practical File mode: template and placeholders ---
 const PRACTICAL_FILE_TEMPLATE = `# {{SUBJECT}}
@@ -176,6 +336,46 @@ int main() { return 0; }
 
 ## Rule
 ---
+
+## Equations (KaTeX)
+Inline: $E = mc^2$, $\\alpha + \\beta$, or \\( \\int_0^1 x\\,dx \\). Display: **double-dollar** lines (multiline OK). Use **Math & formulas** for examples.
+
+`;
+
+/** Inserted by "Math & formulas" — equation-friendly examples for notes & assignments */
+const MATH_REFERENCE = `# Math & formulas (KaTeX — works in preview, PDF & Word)
+
+## Inline math (same line as text)
+Euler: $e^{i\\pi} + 1 = 0$ · Quadratic: $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$
+
+You can also use \\( \\int_0^1 x\\,dx = \\frac{1}{2} \\) instead of dollar signs.
+
+## Display math (centered, on its own)
+Put **double-dollar** delimiters on their own lines; you may break the equation across lines inside the block:
+
+$$
+\\hat{\\mathbf{y}} = \\mathbf{X}\\mathbf{w} + b
+$$
+
+$$
+J = \\frac{1}{2n} \\sum_{i=1}^{n} \\bigl(\\hat{y}_i - y_i\\bigr)^2
+$$
+
+$$
+\\frac{\\partial J}{\\partial \\mathbf{w}} = \\frac{1}{n} \\mathbf{X}^{\\mathsf{T}} (\\hat{\\mathbf{y}} - \\mathbf{y})
+$$
+
+Another display example (same double-dollar rules; multiline OK):
+
+$$
+\\mathbf{w} \\leftarrow \\mathbf{w} - \\alpha \\frac{\\partial J}{\\partial \\mathbf{w}}
+$$
+
+## Tips
+- **Currency** (e.g. five dollars): use backticks like \`$5\` or write \\$5 so it is not parsed as math.
+- **Plain text** (no typesetting): put formulas in a fenced code block.
+- **Matrices, align, etc.:** standard LaTeX you would use in KaTeX is supported — check [KaTeX supported functions](https://katex.org/docs/supported.html).
+
 `;
 
 const SAMPLE_MARKDOWN = `# Unit - I: Basics of Computer Architecture
@@ -250,6 +450,7 @@ fetch(program); execute(data); return results;
 const inputEl = document.getElementById('markdown-input');
 const previewEl = document.getElementById('preview-content');
 const btnFormatRef = document.getElementById('btn-format-ref');
+const btnMathRef = document.getElementById('btn-math-ref');
 const btnSample = document.getElementById('btn-sample');
 const btnClear = document.getElementById('btn-clear');
 const btnDownload = document.getElementById('btn-download');
@@ -270,19 +471,28 @@ function isPracticalMode() {
 function renderPreview(md) {
   if (!md?.trim()) {
     previewEl.innerHTML = '<p class="empty-preview">Your formatted content will appear here.</p>';
-  } else {
-    try {
-      const result = marked.parse(md);
-      if (typeof result === 'string') {
-        previewEl.innerHTML = result;
-      } else {
-        result.then((html) => { previewEl.innerHTML = html; });
-      }
-    } catch (err) {
-      previewEl.innerHTML = `<p class="preview-error">Parse error: ${err.message}</p>`;
-    }
+    updatePreviewStyle();
+    return;
   }
-  updatePreviewStyle();
+  try {
+    const result = markdownToHtml(md);
+    const apply = (html) => {
+      previewEl.innerHTML = html;
+      typesetMath(previewEl);
+      updatePreviewStyle();
+    };
+    if (typeof result === 'string') {
+      apply(result);
+    } else {
+      result.then(apply).catch((err) => {
+        previewEl.innerHTML = `<p class="preview-error">Parse error: ${err.message}</p>`;
+        updatePreviewStyle();
+      });
+    }
+  } catch (err) {
+    previewEl.innerHTML = `<p class="preview-error">Parse error: ${err.message}</p>`;
+    updatePreviewStyle();
+  }
 }
 
 function updatePreviewStyle() {
@@ -308,6 +518,19 @@ btnFormatRef?.addEventListener('click', () => {
   const end = inputEl.selectionEnd;
   const text = inputEl.value;
   const insert = FORMATTING_REFERENCE + '\n\n';
+  const newText = start === 0 && end === 0 ? insert + text : text.slice(0, start) + insert + text.slice(end);
+  inputEl.value = newText;
+  inputEl.selectionStart = inputEl.selectionEnd = start + insert.length;
+  inputEl.focus();
+  renderPreview(inputEl.value);
+});
+
+// Math & formulas — equation-friendly examples
+btnMathRef?.addEventListener('click', () => {
+  const start = inputEl.selectionStart;
+  const end = inputEl.selectionEnd;
+  const text = inputEl.value;
+  const insert = MATH_REFERENCE + '\n\n';
   const newText = start === 0 && end === 0 ? insert + text : text.slice(0, start) + insert + text.slice(end);
   inputEl.value = newText;
   inputEl.selectionStart = inputEl.selectionEnd = start + insert.length;
@@ -380,7 +603,8 @@ function buildFullHtmlForWord(bodyContent, isCompact) {
     blockquote { margin: 8pt 0; padding-left: 12pt; border-left: 3pt solid #f59e0b; color: #444; }
     hr { border: none; border-top: 1pt solid #ccc; margin: 12pt 0; }
   `;
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${style}</style></head><body class="markdown-body">${aligned}</body></html>`;
+  const katexLink = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@${KATEX_VERSION}/dist/katex.min.css" crossorigin="anonymous" />`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8">${katexLink}<style>${style}</style></head><body class="markdown-body">${aligned}</body></html>`;
 }
 
 function downloadBlob(blob, filename) {
@@ -407,9 +631,12 @@ btnDownloadWord?.addEventListener('click', async () => {
     await loadHtmlDocxScript();
     const isCompact = document.querySelector('input[name="pdf-style"]:checked')?.value === 'compact';
     const practicalMode = isPracticalMode();
-    let html = marked.parse(md);
+    let html = markdownToHtml(md);
     if (typeof html !== 'string') html = await html;
-    const fullHtml = buildFullHtmlForWord(html, isCompact);
+    const wordMath = document.createElement('div');
+    wordMath.innerHTML = html;
+    typesetMath(wordMath);
+    const fullHtml = buildFullHtmlForWord(wordMath.innerHTML, isCompact);
     const blob = window.htmlDocx.asBlob(fullHtml);
     const subjectRaw = practicalMode ? (getPracticalDetails().SUBJECT || '').replace(/\s+/g, '_') : '';
     const baseName = subjectRaw ? (subjectRaw.endsWith('_Practical') ? subjectRaw : subjectRaw + '_Practical') : 'markdown-export';
@@ -429,7 +656,7 @@ async function getRenderedHtmlForPrint() {
   if (!md) return null;
   const isCompact = document.querySelector('input[name="pdf-style"]:checked')?.value === 'compact';
   const practicalMode = isPracticalMode();
-  let html = marked.parse(md);
+  let html = markdownToHtml(md);
   if (typeof html !== 'string') html = await html;
   const temp = document.createElement('div');
   temp.className = 'preview-content markdown-body' + (isCompact ? ' markdown-body--compact' : '');
@@ -437,6 +664,7 @@ async function getRenderedHtmlForPrint() {
   if (practicalMode) {
     temp.querySelectorAll('h2').forEach((h2) => h2.classList.add('page-break-before'));
   }
+  typesetMath(temp);
   temp.style.width = '210mm';
   temp.style.padding = isCompact ? '12mm' : '20mm';
   temp.style.background = '#fff';
@@ -468,6 +696,8 @@ async function openPrintToPdf() {
     .markdown-body code { font-family: monospace; background: #f0f0f0; padding: 1px 4px; font-size: 0.9em; }
     .markdown-body blockquote { margin: 0.5rem 0; padding-left: 1rem; border-left: 3px solid #f59e0b; color: #444; }
     .markdown-body hr { border: none; border-top: 1px solid #ccc; margin: 1rem 0; }
+    .markdown-body .katex { font-size: 1.05em; }
+    .markdown-body .katex-display { margin: 0.75rem 0; overflow-x: auto; overflow-y: hidden; }
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .markdown-body { padding: 15mm; }
@@ -477,7 +707,8 @@ async function openPrintToPdf() {
       table { page-break-inside: avoid; }
     }
   `;
-  const doc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print to PDF</title><style>${printStyles}</style></head><body class="markdown-body">${data.html}</body></html>`;
+  const katexLink = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@${KATEX_VERSION}/dist/katex.min.css" crossorigin="anonymous" />`;
+  const doc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print to PDF</title>${katexLink}<style>${printStyles}</style></head><body class="markdown-body">${data.html}</body></html>`;
   const w = window.open('', '_blank');
   if (!w) {
     alert('Please allow pop-ups to use Print to PDF.');
@@ -523,7 +754,7 @@ btnDownload.addEventListener('click', async () => {
     const { default: html2pdf } = await import('html2pdf.js');
     const isCompact = document.querySelector('input[name="pdf-style"]:checked')?.value === 'compact';
     const practicalMode = isPracticalMode();
-    let html = marked.parse(md);
+    let html = markdownToHtml(md);
     if (typeof html !== 'string') html = await html;
     const temp = document.createElement('div');
     temp.className = 'preview-content markdown-body' + (isCompact ? ' markdown-body--compact' : '');
@@ -533,6 +764,7 @@ btnDownload.addEventListener('click', async () => {
         h2.classList.add('page-break-before');
       });
     }
+    typesetMath(temp);
     temp.style.width = '210mm';
     temp.style.padding = isCompact ? '12mm' : '20mm';
     temp.style.background = '#fff';

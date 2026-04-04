@@ -63,9 +63,44 @@ Use **only** these syntaxes for reliable conversion:
 ### Supported language tags
 `c`, `cpp`, `python`, `javascript`, `bash`, `json`, etc. Language tag improves syntax highlighting in preview; PDF shows plain monospace.
 
+### Long lines — break onto next line
+Long lines in code blocks can be cut off or overflow in PDF. Keep lines under ~72–80 characters where practical.
+
+**How to handle:**
+- Break long statements onto the next line with proper indentation.
+- Use parentheses or backslash for line continuation.
+- Extract sub-expressions into named variables to shorten lines.
+- Split list comprehensions, function args, and multi-part conditions across multiple lines.
+
+**Example — before (long line, may be cut):**
+
+```python
+results.append((pid, arrival, burst, completion, completion - arrival, completion - arrival - burst, current_time - arrival))
+```
+
+**Example — after (split for readability and PDF-safe width):**
+
+```python
+tat = completion - arrival
+wt = tat - burst
+rt = current_time - arrival
+results.append((pid, arrival, burst, completion, tat, wt, rt))
+```
+
+**Example — long list comprehension split:**
+
+```python
+ready = [
+    (pid, procs[pid])
+    for pid in procs
+    if procs[pid][0] <= current_time and procs[pid][2] > 0
+]
+```
+
 ### Avoid
 - Indented code blocks (4 spaces) for multi-line code — prefer fenced blocks.
 - Tabs inside code — use spaces.
+- Lines longer than ~80 characters — break them for PDF safety.
 
 ---
 
@@ -101,7 +136,7 @@ Use **only** these syntaxes for reliable conversion:
 
 - **Recommendation**: Up to ~50 pages for smooth export.
 - **Images**: Only base64 inline images work in some export paths; prefer links or attachments.
-- **Very long code blocks**: Consider splitting or shortening for readability.
+- **Very long code blocks**: Consider splitting or shortening for readability. For long *lines* within code, see Section 3 (Code Blocks) — break them onto the next line.
 
 ---
 
@@ -120,6 +155,7 @@ Use **only** these syntaxes for reliable conversion:
 - [ ] Headings use `#` with a space after.
 - [ ] Tables have alignment row and blank lines around them.
 - [ ] Code blocks use triple backticks, not indentation.
+- [ ] Long code lines are split with proper indentation for PDF-safe display.
 - [ ] No trailing spaces or odd characters.
 - [ ] Lists are indented with spaces, not tabs.
 - [ ] In Practical mode, `##` is used for each practical title.

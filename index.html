@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0f0f10" />
-  <meta name="description" content="Convert Markdown to PDF for free. Works on phone and laptop. 100% client-side, private." />
+  <meta name="description" content="Markdown to PDF with math: LaTeX-style equations (KaTeX) in preview and exports. Free, client-side, private." />
   <title>Markdown to PDF | Free Online Converter</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,7 +25,7 @@
           </svg>
           <h1>Markdown to PDF</h1>
         </div>
-        <p class="tagline">Convert your Markdown to beautiful, print-ready PDFs — free, private, and entirely in your browser</p>
+        <p class="tagline">Markdown to beautiful PDFs — with <strong>equations</strong> (LaTeX-style math), tables, and code. Free, private, in your browser.</p>
       </div>
       <div class="mode-switch" role="group" aria-label="Document mode">
         <input type="radio" name="app-mode" id="app-mode-standard" value="standard" checked />
@@ -119,6 +119,7 @@
           <h2>Markdown Input</h2>
           <div class="panel-actions">
             <button type="button" class="btn btn-ghost" id="btn-format-ref" title="Insert formatting reference">Formatting ref</button>
+            <button type="button" class="btn btn-ghost" id="btn-math-ref" title="Insert math & formulas examples (KaTeX)">Math & formulas</button>
             <button type="button" class="btn btn-ghost" id="btn-sample" title="Load sample">Load sample</button>
             <button type="button" class="btn btn-ghost" id="btn-clear" title="Clear">Clear</button>
             <label class="btn btn-ghost btn-file">
@@ -140,7 +141,10 @@
 | Table | Header |
 |-------|--------|
 | Row   | Data   |
-\`inline code\` or fenced \`\`\`code block\`\`\`"></textarea>
+\`inline code\` or fenced \`\`\`code block\`\`\`
+
+Math: $E=mc^2$ inline, or display on separate lines:
+$$ \\sum_{i=1}^{n} i $$"></textarea>
       </div>
 
       <div class="preview-panel panel" data-panel="preview">
@@ -185,7 +189,7 @@
               <span>Compact</span>
             </label>
           </div>
-          <span class="pdf-style-hint">Compact = denser layout. Use <strong>Print to PDF</strong> for copyable text.</span>
+          <span class="pdf-style-hint">Compact = denser layout. <strong>Print to PDF</strong> = selectable text. Math renders in preview &amp; PDF.</span>
         </div>
         <div id="preview-container" class="preview-container">
           <div id="preview-content" class="preview-content markdown-body"></div>
@@ -194,7 +198,7 @@
     </main>
 
     <footer class="footer">
-      <p>100% client-side — your content never leaves your device</p>
+      <p>100% client-side — your content never leaves your device · Equations use <a href="https://katex.org/" target="_blank" rel="noopener noreferrer">KaTeX</a> (LaTeX syntax)</p>
     </footer>
   </div>
 
