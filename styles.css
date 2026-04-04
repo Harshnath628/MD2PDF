@@ -685,6 +685,22 @@ body {
   border-top: 1px solid #e5e5e5;
 }
 
+/* Mermaid diagrams */
+.mermaid-diagram {
+  margin: 0.75rem 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.markdown-body pre.mermaid-error {
+  border-left: 4px solid #ef4444;
+}
+
 /* KaTeX — match dark preview panel; PDF export uses default (dark on white) */
 .preview-content .markdown-body .katex {
   color: var(--text-primary);

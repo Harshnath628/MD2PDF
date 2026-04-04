@@ -16,6 +16,7 @@ Use **only** these syntaxes for reliable conversion:
 | **Strikethrough** | `~~text~~` | GFM only. |
 | **Inline code** | `` `code` `` | Use backticks, not double backticks for inline. |
 | **Code block** | ` ``` ` with optional language | Fenced with triple backticks on their own line. |
+| **Diagram** | ` ```mermaid ` | Mermaid diagram rendered as SVG. See Section 4. |
 | **Bullet list** | `-` or `*` + space | Use consistent bullet style. |
 | **Numbered list** | `1.` + space | Numbers can be `1.` for all (auto-numbering). |
 | **Task list** | `- [ ]` and `- [x]` | Space inside brackets for unchecked; `x` for checked. |
@@ -104,7 +105,79 @@ ready = [
 
 ---
 
-## 4. Page Breaks (Practical File mode)
+## 4. Diagrams and Infographics (Mermaid)
+
+The app renders **Mermaid** diagram fences into live SVG in preview, PDF, and Word exports. Use ` ```mermaid ` fenced blocks instead of ASCII art for diagrams that need to look sharp at any zoom level and remain readable in exported PDFs.
+
+### Basic syntax
+
+````markdown
+```mermaid
+flowchart LR
+    A[Start] --> B{Decision}
+    B -->|Yes| C[OK]
+    B -->|No| D[End]
+```
+````
+
+The diagram renders as a centered SVG in the preview pane and in all exports.
+
+### Supported diagram types
+
+| Type | Opening keyword | Typical use |
+|------|-----------------|-------------|
+| Flowchart | `flowchart TD` or `flowchart LR` | Process flows, algorithms, decision trees |
+| Sequence | `sequenceDiagram` | API calls, protocol exchanges |
+| State | `stateDiagram-v2` | Process lifecycles, FSMs |
+| Class | `classDiagram` | OOP structures, relationships |
+| ER | `erDiagram` | Database schemas |
+| Gantt | `gantt` | Timelines, project schedules |
+| Pie | `pie` | Proportional data |
+| Mindmap | `mindmap` | Topic exploration, brainstorming |
+| Git graph | `gitGraph` | Branch workflows |
+
+Full reference: [mermaid.js.org/intro](https://mermaid.js.org/intro/)
+
+### Rules for clean Mermaid in PDF
+
+1. **One diagram per fenced block.** Do not put two separate diagrams inside the same ` ```mermaid ` fence.
+2. **Keep diagrams compact.** Very wide flowcharts may be clipped or scaled down in A4 PDF. Use `TD` (top-down) orientation for tall diagrams or split wide ones into subgraphs.
+3. **No spaces in node IDs.** Use `camelCase` or `underscores` for identifiers; put display labels in brackets: `myNode[My Label]`.
+4. **Quote edge labels with special characters.** Wrap in double quotes: `A -->|"O(n) time"| B`.
+5. **Avoid inline CSS / `style` directives.** The default Mermaid theme produces clean SVGs; custom colours may not carry over to Word export.
+6. **Blank line before and after** the fenced block — same rule as code blocks and tables.
+7. **Syntax errors show the raw code block** with a red left border, so double-check your diagram at [mermaid.live](https://mermaid.live/) if it does not render.
+
+### When to prefer ASCII art over Mermaid
+
+- **Simple text boxes** shown in monospace (e.g. a single-column pipeline) are sometimes clearer as plain code blocks, especially when the viewer may not have Mermaid support (e.g. plain-text `README` files in terminals).
+- You can keep **both** side by side: a ` ```mermaid ` block for the rendered diagram and an ASCII fallback inside a regular ` ``` ` code block, labelled accordingly. The rendered version will appear in preview/PDF; the ASCII version will appear in plain-text viewers.
+
+### Example: process vs thread memory layout
+
+````markdown
+```mermaid
+flowchart LR
+    subgraph fork_model["After fork — separate address spaces"]
+        P["Parent (PID 100)"]
+        C["Child (PID 101)"]
+        P -.->|"COW on write"| C
+    end
+    subgraph thread_model["After pthread_create — shared address space"]
+        ONE["PID 200"]
+        ONE --> TA["Thread A"]
+        ONE --> TB["Thread B"]
+    end
+```
+````
+
+### Word export notes
+
+Mermaid SVGs are automatically converted to inline PNG images when you choose **Download Word**. Colours and fonts may shift slightly versus the preview; use simple diagrams for best results.
+
+---
+
+## 5. Page Breaks (Practical File mode)
 
 - Each `## Heading` starts a new page when using **Practical File** mode.
 - Use `## Practical 1: Title` style headings for per-practical page breaks.
@@ -112,7 +185,7 @@ ready = [
 
 ---
 
-## 5. Spacing and Layout
+## 6. Spacing and Layout
 
 - **Blank lines**: Use one blank line between blocks (paragraphs, lists, tables, headings).
 - **No trailing spaces**: Remove spaces at end of lines.
@@ -121,7 +194,7 @@ ready = [
 
 ---
 
-## 6. Characters to Avoid
+## 7. Characters to Avoid
 
 | Avoid | Use Instead | Reason |
 |-------|-------------|--------|
@@ -132,15 +205,16 @@ ready = [
 
 ---
 
-## 7. File Length and Size
+## 8. File Length and Size
 
 - **Recommendation**: Up to ~50 pages for smooth export.
 - **Images**: Only base64 inline images work in some export paths; prefer links or attachments.
 - **Very long code blocks**: Consider splitting or shortening for readability. For long *lines* within code, see Section 3 (Code Blocks) — break them onto the next line.
+- **Mermaid diagrams**: Very complex diagrams with many nodes add to export time. See Section 4 (Diagrams) for sizing tips.
 
 ---
 
-## 8. PDF vs Print to PDF
+## 9. PDF vs Print to PDF
 
 | Output | When to Use |
 |--------|-------------|
@@ -150,7 +224,7 @@ ready = [
 
 ---
 
-## 9. Checklist Before Export
+## 10. Checklist Before Export
 
 - [ ] Headings use `#` with a space after.
 - [ ] Tables have alignment row and blank lines around them.
@@ -159,11 +233,13 @@ ready = [
 - [ ] No trailing spaces or odd characters.
 - [ ] Lists are indented with spaces, not tabs.
 - [ ] In Practical mode, `##` is used for each practical title.
+- [ ] Mermaid diagrams render correctly in preview (no red-bordered code blocks).
+- [ ] Diagrams use `TD` or `LR` orientation appropriate for page width.
 - [ ] For copyable text, use **Print to PDF**, not Download PDF.
 
 ---
 
-## 10. Example: Well-Formatted Document
+## 11. Example: Well-Formatted Document
 
 ````markdown
 # Document Title
@@ -185,6 +261,14 @@ Short intro paragraph.
 
 ```python
 print("Hello")
+```
+
+## Section Four — Diagram
+
+```mermaid
+flowchart TD
+    A[Input] --> B[Process]
+    B --> C[Output]
 ```
 
 > Important note here.

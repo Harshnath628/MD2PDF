@@ -2,11 +2,18 @@ import { marked } from 'marked';
 import katex from 'katex';
 import renderMathInElement from 'katex/contrib/auto-render';
 import 'katex/dist/katex.min.css';
+import mermaid from 'mermaid';
 
 // Marked config — tables, breaks, etc.
 marked.setOptions({
   gfm: true,
   breaks: true,
+});
+
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'default',
+  securityLevel: 'strict',
 });
 
 /** KaTeX version (keep in sync with package.json) — used for print/Word stylesheet URLs */
@@ -163,6 +170,30 @@ function typesetMath(root) {
     renderMathInElement(root, KATEX_AUTO_RENDER_OPTIONS);
   } catch (err) {
     console.error(err);
+  }
+}
+
+let mermaidIdCounter = 0;
+
+async function renderMermaidDiagrams(root) {
+  if (!root) return;
+  const codeBlocks = root.querySelectorAll('pre > code.language-mermaid');
+  if (!codeBlocks.length) return;
+
+  for (const codeEl of codeBlocks) {
+    const pre = codeEl.parentElement;
+    const definition = codeEl.textContent;
+    try {
+      const id = `md-mermaid-${mermaidIdCounter++}`;
+      const { svg } = await mermaid.render(id, definition);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mermaid-diagram';
+      wrapper.innerHTML = svg;
+      pre.replaceWith(wrapper);
+    } catch (err) {
+      console.error('Mermaid render error:', err);
+      pre.classList.add('mermaid-error');
+    }
   }
 }
 
@@ -340,6 +371,16 @@ int main() { return 0; }
 ## Equations (KaTeX)
 Inline: $E = mc^2$, $\\alpha + \\beta$, or \\( \\int_0^1 x\\,dx \\). Display: **double-dollar** lines (multiline OK). Use **Math & formulas** for examples.
 
+## Diagrams (Mermaid)
+\`\`\`mermaid
+flowchart LR
+    A[Start] --> B{Decision}
+    B -->|Yes| C[OK]
+    B -->|No| D[End]
+\`\`\`
+
+Supports flowcharts, sequence, state, class, ER, Gantt, pie, and more — see [Mermaid docs](https://mermaid.js.org/intro/).
+
 `;
 
 /** Inserted by "Math & formulas" — equation-friendly examples for notes & assignments */
@@ -479,6 +520,7 @@ function renderPreview(md) {
     const apply = (html) => {
       previewEl.innerHTML = html;
       typesetMath(previewEl);
+      renderMermaidDiagrams(previewEl);
       updatePreviewStyle();
     };
     if (typeof result === 'string') {
@@ -564,6 +606,47 @@ fileInput.addEventListener('change', (e) => {
   fileInput.value = '';
 });
 
+/**
+ * Convert Mermaid SVGs to inline PNG <img> tags so html-docx-js can embed them
+ * (Word's SVG support is unreliable).
+ */
+async function rasterizeSvgsForWord(root) {
+  const diagrams = root.querySelectorAll('.mermaid-diagram');
+  for (const diagram of diagrams) {
+    const svg = diagram.querySelector('svg');
+    if (!svg) continue;
+    try {
+      const vb = svg.getAttribute('viewBox');
+      const parts = vb ? vb.split(/[\s,]+/).map(Number) : [];
+      const w = parseFloat(svg.getAttribute('width')) || parts[2] || 800;
+      const h = parseFloat(svg.getAttribute('height')) || parts[3] || 400;
+
+      const serialized = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+
+      const scale = 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = w * scale;
+      canvas.height = h * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+
+      const png = canvas.toDataURL('image/png');
+      diagram.innerHTML = `<img src="${png}" style="max-width:100%;height:auto" alt="diagram" />`;
+    } catch (err) {
+      console.error('SVG rasterization error:', err);
+    }
+  }
+}
+
 // Load html-docx-js from CDN (once) for Word export
 function loadHtmlDocxScript() {
   if (typeof window.htmlDocx !== 'undefined') return Promise.resolve();
@@ -636,6 +719,8 @@ btnDownloadWord?.addEventListener('click', async () => {
     const wordMath = document.createElement('div');
     wordMath.innerHTML = html;
     typesetMath(wordMath);
+    await renderMermaidDiagrams(wordMath);
+    await rasterizeSvgsForWord(wordMath);
     const fullHtml = buildFullHtmlForWord(wordMath.innerHTML, isCompact);
     const blob = window.htmlDocx.asBlob(fullHtml);
     const subjectRaw = practicalMode ? (getPracticalDetails().SUBJECT || '').replace(/\s+/g, '_') : '';
@@ -665,6 +750,7 @@ async function getRenderedHtmlForPrint() {
     temp.querySelectorAll('h2').forEach((h2) => h2.classList.add('page-break-before'));
   }
   typesetMath(temp);
+  await renderMermaidDiagrams(temp);
   temp.style.width = '210mm';
   temp.style.padding = isCompact ? '12mm' : '20mm';
   temp.style.background = '#fff';
@@ -698,6 +784,8 @@ async function openPrintToPdf() {
     .markdown-body hr { border: none; border-top: 1px solid #ccc; margin: 1rem 0; }
     .markdown-body .katex { font-size: 1.05em; }
     .markdown-body .katex-display { margin: 0.75rem 0; overflow-x: auto; overflow-y: hidden; }
+    .mermaid-diagram { margin: 0.75rem 0; text-align: center; overflow: hidden; }
+    .mermaid-diagram svg { max-width: 100%; height: auto; }
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .markdown-body { padding: 15mm; }
@@ -765,6 +853,7 @@ btnDownload.addEventListener('click', async () => {
       });
     }
     typesetMath(temp);
+    await renderMermaidDiagrams(temp);
     temp.style.width = '210mm';
     temp.style.padding = isCompact ? '12mm' : '20mm';
     temp.style.background = '#fff';

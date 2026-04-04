@@ -1,4 +1,3 @@
-
 ## Practical 4: Process and Thread Management
 
 **Topic:** Process and Thread Management
@@ -10,46 +9,31 @@
 - **Theory:**
   - In Linux, `fork()` is the primary mechanism for process creation. The calling process duplicates itself; the original is the **parent** and the new one is the **child**. They run the same program text but the kernel gives each process its **own** PID, file descriptor table, and memory view so they can diverge safely.
   - Modern kernels use **copy-on-write (COW)**: right after `fork()`, parent and child **share read-only pages** of physical memory; a page is copied only when one side **writes** to it. That keeps `fork()` affordable even for large programs.
-  - `fork()` returns a `pid_t`: in the parent it returns the child’s PID; in the child it returns `0`; on failure it returns a negative value. The child often later calls **`exec*()`** to load a new program image; until then, both continue the same code path after `fork()`.
+  - `fork()` returns a `pid_t`: in the parent it returns the child's PID; in the child it returns `0`; on failure it returns a negative value. The child often later calls **`exec*()`** to load a new program image; until then, both continue the same code path after `fork()`.
   - If the parent exits before the child is reaped, the child may be **adopted by `init`**; if the child exits first and the parent never `wait()`s, you get a **zombie** until the parent collects the exit status.
 
-**Flowchart — decision after `fork()` (who am I?):**
-
-```
-                    +------------------+
-                    |   pid = fork()   |
-                    +--------+---------+
-                             |
-              +--------------+--------------+
-              |                             |
-         pid < 0                        pid == 0
-      (fork failed)                   (child process)
-              |                             |
-              v                             v
-    +-------------------+         +-------------------+
-    | print error /     |         | child-only work   |
-    | exit / retry      |         | getpid(), exec...|
-    +-------------------+         +-------------------+
-                             |
-                        pid > 0
-                     (parent process)
-                             |
-                             v
-                   +-------------------+
-                   | parent-only work  |
-                   | wait(), IPC, etc. |
-                   +-------------------+
-```
-
-**Mermaid (for editors that render it — e.g. GitHub, or paste at mermaid.live):**
+**Infographic — return value of `fork()` (who runs which branch?):**
 
 ```mermaid
 flowchart TD
-    A[fork returns pid] --> B{"pid < 0 ?"}
-    B -->|yes| C[Handle error]
-    B -->|no| D{"pid == 0 ?"}
-    D -->|yes| E[Child branch]
-    D -->|no| F[Parent branch — child PID in pid]
+    startNode["pid = fork()"] --> checkErr{"Negative pid ?"}
+    checkErr -->|yes| errNode["Handle error / exit"]
+    checkErr -->|no| checkChild{"Zero pid ?"}
+    checkChild -->|yes| childNode["Child: own work, exec, exit"]
+    checkChild -->|no| parentNode["Parent: child PID in pid, wait, IPC"]
+```
+
+**Infographic — COW idea (logical):**
+
+```mermaid
+flowchart LR
+    subgraph cowPhase["Right after fork"]
+        parentProc["Parent"]
+        childProc["Child"]
+        sharedPages["Shared read-only pages"]
+    end
+    parentProc --> sharedPages
+    childProc --> sharedPages
 ```
 
 **Program Code:**
@@ -103,25 +87,15 @@ int main(void) {
   - Typical fields include: identifiers (**PID**, **PPID**, user/group ids), **CPU registers** and program counter snapshot, **memory maps** (page tables, heap/stack bounds), **file descriptors**, **signal masks**, **nice value / priority**, **accounting** (CPU time), and **state** (running, interruptible sleep, zombie, etc.).
   - User space sees a **projection** of this via `/proc/[pid]/`, `ps`, and syscalls like `getpid`, `getpriority`, `times`.
 
-**PCB / lifecycle (conceptual):**
-
-```
-  NEW -----> READY <-----> RUNNING -----> TERMINATED
-              ^               |
-              |               v
-              +----------- WAITING
-                    (I/O, sleep, lock)
-```
-
-**Mermaid — scheduler view:**
+**Infographic — process state lifecycle (simplified):**
 
 ```mermaid
 stateDiagram-v2
     [*] --> Ready: admitted
     Ready --> Running: dispatched
-    Running --> Ready: time slice / preempt
-    Running --> Waiting: I/O or wait()
-    Waiting --> Ready: event completes
+    Running --> Ready: preempt or yield
+    Running --> Waiting: I/O or wait
+    Waiting --> Ready: event done
     Running --> Terminated: exit
     Terminated --> [*]
 ```
@@ -171,36 +145,24 @@ int main(void) {
 - **Aim:** Distinguish processes created by `fork()` from threads created by `pthread_create()`, and verify thread counts.
 
 - **Theory:**
-  - `fork()` creates a **new process**; each new process begins with **one thread** (the “main” thread). More processes ⇒ more PIDs and more copies of the program (subject to COW).
+  - `fork()` creates a **new process**; each new process begins with **one thread** (the "main" thread). More processes imply more PIDs and more copies of the program (subject to COW).
   - `pthread_create()` creates a **new thread of execution** inside the **same** process: **same PID**, same address space, but a new stack and thread ID (TID / LWP). The kernel still schedules each thread independently.
   - **User-level vs kernel-level:** POSIX threads are **kernel threads** on Linux (1:1 model): each `pthread` maps to a schedulable entity; that is why `ps -L` can list them.
-  - Tools like `htop` tree mode (F5) emphasize **parent→child process** relationships. **Per-thread** view is a different toggle (e.g. **H** in `htop`) or `ps -L`.
+  - Tools like `htop` tree mode (F5) emphasize **parent to child process** relationships. **Per-thread** view is a different toggle (e.g. **H** in `htop`) or `ps -L`.
 
-**Diagram — one process, many threads (shared address space):**
-
-```
-  Process PID = 4242
-  +------------------------------------------+
-  |  code | heap (shared) | globals (shared)|
-  +------------------------------------------+
-       |           |              |
-    Thread 1    Thread 2       Thread 3
-   (main)      (worker)       (worker)
-   stack       stack          stack
-```
-
-**Mermaid:**
+**Infographic — one process, many threads (shared vs private):**
 
 ```mermaid
-flowchart LR
-    subgraph P[One process — one PID]
-        T1[Thread 1 — main]
-        T2[Thread 2]
-        T3[Thread 3]
+flowchart TB
+    subgraph onePid["Single PID — shared address space"]
+        sharedMem["Shared: code, heap, globals"]
+        t1["Thread 1 stack"]
+        t2["Thread 2 stack"]
+        t3["Thread 3 stack"]
+        sharedMem --- t1
+        sharedMem --- t2
+        sharedMem --- t3
     end
-    H[Heap / globals — shared] --- T1
-    H --- T2
-    H --- T3
 ```
 
 **A. Why you may see one thread after `fork()`**
@@ -250,10 +212,10 @@ ps -L -p <PID> | wc -l
 **Commands recap**
 
 | Command | Purpose |
-|--------|---------|
+|:--------|:--------|
 | `ps -L -p [PID]` | List LWPs (threads) for a PID |
 | `ls /proc/[PID]/task` | Thread IDs as directories |
-| `htop` then **H** | Toggle “show threads” |
+| `htop` then **H** | Toggle "show threads" |
 
 **Remark:** `pthread_join` waits until threads finish; for a long `sleep` in workers, you have time to run `ps`.
 
@@ -270,23 +232,28 @@ ps -L -p <PID> | wc -l
   - **Thread (`pthread`):** Threads are **lightweight** because they share the **same page table**, open files (with caveats), and heap; synchronization (**mutexes**, **condition variables**, **atomics**) is required to avoid data races.
   - **Parallelism:** Multiple processes suit **strong isolation** (e.g. browser tabs, containers). Multiple threads suit **parallel work on shared data** (e.g. pool workers) with lower overhead than many processes.
 
-**Infographic — memory view (simplified):**
+**Infographic — fork vs pthread (address spaces):**
 
-```
-  PROCESS A (fork)              PROCESS B (child)     THREADS (same PID)
-  +-------------+               +-------------+       +------------------+
-  | addr space  |   COW copy    | addr space  |       |  one addr space  |
-  | on write    | ------------> | on write    |       |  +----+ +----+   |
-  +-------------+               +-------------+       |  | T1 | | T2 |   |
-                                                        |  +----+ +----+   |
-                                                        |  shared heap     |
-                                                        +------------------+
+```mermaid
+flowchart LR
+    subgraph fork_model["After fork — separate address spaces"]
+        parentNode["Parent (PID 100)"]
+        childNode["Child (PID 101)"]
+        parentNode -.->|"COW on write"| childNode
+    end
+    subgraph thread_model["After pthread_create — shared address space"]
+        pidNode["PID 200"]
+        threadA["Thread A"]
+        threadB["Thread B"]
+        pidNode --> threadA
+        pidNode --> threadB
+    end
 ```
 
 **Comparison table — process vs thread**
 
 | Aspect | Process (`fork` / new program) | Thread (`pthread_create`) |
-|--------|-------------------------------|---------------------------|
+|:-------|:-------------------------------|:--------------------------|
 | **Unit of resource ownership** | Owns PID, descriptors, quotas | Shares process-wide resources |
 | **Address space** | Separate; COW after `fork` | Shared text, heap, globals |
 | **Private per-unit data** | Everything private by default | Each thread has own **stack**; **TLS** for thread-local vars |
@@ -297,22 +264,6 @@ ps -L -p <PID> | wc -l
 | **Fault / security** | **Isolation** — one crash often spares others | **Shared fate** — bad pointer can kill whole process |
 | **Scaling CPU-bound work** | Good with **multi-process** pools | Good with **thread pools** on shared data |
 | **Typical use** | Services, shells, workers, sandboxes | Parallel algorithms, GUI + worker, servers |
-
-**Mermaid — fork vs pthread (high level):**
-
-```mermaid
-flowchart TB
-    subgraph fork_model[After fork — separate address spaces]
-        P[Parent PID 100]
-        C[Child PID 101]
-        P -.->|COW on write| C
-    end
-    subgraph thread_model[After pthread_create — one address space]
-        ONE[PID 200]
-        ONE --> TA[Thread A]
-        ONE --> TB[Thread B]
-    end
-```
 
 **Remark:** Choose processes for isolation; choose threads for cheap communication within one program.
 
@@ -333,33 +284,19 @@ flowchart TB
    - `/proc/[PID]/cmdline` — command line
 3. **Display:** Build a table and refresh periodically (e.g. every second).
 
-**Flowchart — process explorer data path:**
-
-```
-  +--------+     list dirs      +------------------+
-  | /proc  | -----------------> | 1, 2, 4242, ...   |  (numeric = PIDs)
-  +--------+                    +--------+---------+
-                                         |
-                    +--------------------+--------------------+
-                    |                    |                    |
-                    v                    v                    v
-            /proc/pid/stat      /proc/pid/status     /proc/pid/cmdline
-                    |                    |                    |
-                    +--------------------+--------------------+
-                                         |
-                                         v
-                              +---------------------+
-                              | sort, filter, UI    |
-                              | refresh every 1s    |
-                              +---------------------+
-```
+**Infographic — from `/proc` to UI (one scan cycle):**
 
 ```mermaid
 flowchart LR
-    A[/proc] --> B[Enumerate PID dirs]
-    B --> C[Read stat / status / cmdline]
-    C --> D[Parse & aggregate]
-    D --> E[Render table / refresh]
+    procRoot["/proc"] --> enumPids["List numeric dirs = PIDs"]
+    enumPids --> readStat["Read stat"]
+    enumPids --> readStatus["Read status"]
+    enumPids --> readCmd["Read cmdline"]
+    readStat --> mergeNode["Parse and merge"]
+    readStatus --> mergeNode
+    readCmd --> mergeNode
+    mergeNode --> uiTable["Sort, filter, render"]
+    uiTable --> refreshNode["Next poll ~1s later"]
 ```
 
 **Conclusion:** No special syscall magic — periodic reads of `/proc` plus aggregation.
@@ -373,8 +310,8 @@ flowchart LR
 - **Theory:** Mobile OSs favour **battery life**; background work is more restricted than on typical desktop Linux.
 
 | Feature | Android | iOS |
-|--------|---------|-----|
-| Approach | Cooperative & preemptive; background limited by Doze / App Standby | Suspension-based; strict background APIs |
+|:--------|:--------|:----|
+| Approach | Cooperative and preemptive; background limited by Doze / App Standby | Suspension-based; strict background APIs |
 | Mechanisms | Services, `BroadcastReceiver`, WorkManager | Background tasks, push, Background Fetch |
 | Low memory | **LMK** (OOM score) | **Jetsam** (aggressive termination) |
 | UX | More flexible; potentially higher drain | Stricter; tuned for battery |
@@ -386,3 +323,5 @@ flowchart LR
 ---
 
 **Overall conclusion:** This practical ties together `fork()`, process attributes, pthreads, `/proc`, and mobile OS policy for a rounded view of processes and threads.
+
+> **Export note:** Diagrams use ` ```mermaid ` fences so they render as SVG in this app's preview, PDF, and Word (per project formatting rules). If a diagram shows as raw code with a red border, validate it at [mermaid.live](https://mermaid.live/).
