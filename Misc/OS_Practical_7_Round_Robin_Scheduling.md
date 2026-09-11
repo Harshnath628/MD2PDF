@@ -1,20 +1,3 @@
-# {{SUBJECT}}
-**Session:** {{SESSION}}
-
-**{{INSTITUTION}}**
-**{{FACULTY}}**
-**{{DEGREE}}**
-**{{DEPARTMENT}}**
-
-| Submitted To | Submitted By |
-|:-------------|:-------------|
-| {{TEACHER_NAME}} | {{STUDENT_NAME}} |
-| {{TEACHER_TITLE}} | {{YEAR}} |
-| {{TEACHER_DEPT}} | {{DEGREE}} |
-| | {{SECTION}} |
-| | Roll No. {{ROLL_NO}} |
-
----
 
 ## Practical 7: Round Robin (RR) CPU Scheduling
 

@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import { headingSlug, fitDiagram } from './document-features.js';
+assert.equal(headingSlug('Equations & Examples!'), 'equations-examples');
+assert.equal(headingSlug('हिन्दी परिचय'), 'हिन्दी-परिचय');
+assert.equal(headingSlug('!!!'), 'section');
+const tall = fitDiagram(400, 3000, 680, 960);
+assert.equal(tall.height, 960);
+assert.ok(tall.width < 680);
+assert.equal(tall.width / tall.height, 400 / 3000);
+const wide = fitDiagram(3000, 400, 680, 960);
+assert.equal(wide.width, 680);
+assert.ok(wide.height < 960);
+assert.deepEqual(fitDiagram(100, 100, 680, 960), {width:100,height:100,scale:1});
+console.log('Heading links and diagram page-fit checks passed.');
+import { normalizePath, resolveImagePath, connectImageFolder, folderImage, disconnectImageFolder } from './local-folder.js';
+assert.equal(normalizePath('notes/../images/a.png'), 'images/a.png');
+assert.equal(normalizePath('../outside.png'), null);
+const paths = ['notes/images/a.png', 'images/a.png', 'shared/deep/chart.png'];
+assert.equal(resolveImagePath('./images/a.png', paths, 'notes/doc.md').path, 'notes/images/a.png');
+assert.equal(resolveImagePath('../images/a.png', paths, 'notes/doc.md').path, 'images/a.png');
+assert.equal(resolveImagePath('chart.png', paths, 'notes/doc.md').path, 'shared/deep/chart.png');
+assert.equal(resolveImagePath('a.png', paths).error, 'ambiguous');
+assert.equal(resolveImagePath('C:\\Users\\Me\\chart.png', paths).path, 'shared/deep/chart.png');
+assert.equal(resolveImagePath('missing.png', paths).error, 'missing');
+function folderFile(path, contents) {
+  const file = new File([contents], path.split('/').pop());
+  Object.defineProperty(file, 'webkitRelativePath', { value: path });
+  return file;
+}
+const md = folderFile('project/notes/doc.md', '# Notes');
+const pic = folderFile('project/images/photo.png', 'image');
+await connectImageFolder([md, pic], 'doc.md', '# Notes');
+assert.equal(folderImage('../images/photo.png').file, pic);
+disconnectImageFolder();
+assert.equal(folderImage('../images/photo.png').error, 'missing');
+console.log('Parent-folder, nested-image, duplicate-name and access-reset checks passed.');
