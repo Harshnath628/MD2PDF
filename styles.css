@@ -33,9 +33,13 @@ main{max-width:1800px;margin:auto;padding:10px 40px 24px;display:grid;grid-templ
 @media print{#print-warnings,.print-measure{display:none!important}.document .mermaid-diagram{break-inside:avoid-page!important;page-break-inside:avoid!important;overflow:visible!important;margin:4mm 0!important}.document .mermaid-diagram svg{width:var(--diagram-print-width)!important;height:var(--diagram-print-height)!important;max-width:100%!important;max-height:var(--print-content-height)!important;overflow:visible!important}.document img{max-height:var(--print-content-height);break-inside:avoid;object-fit:contain}.document pre{background:#f3f4f5!important;color:#24292e!important}.hljs-keyword,.hljs-selector-tag,.hljs-literal{color:#7b219c}.hljs-string,.hljs-regexp,.hljs-addition{color:#225d2b}.hljs-number,.hljs-built_in,.hljs-type{color:#984a0b}.hljs-title,.hljs-attribute{color:#075c91}.hljs-comment,.hljs-quote{color:#555e55}.hljs-meta,.hljs-symbol{color:#962a4f}.document a{color:#1652a0;text-decoration:underline}}
 .folder-status{font-size:12px;line-height:1.5;color:#9ca3af;padding:12px 24px;margin:0;border-bottom:1px solid #2a2a2e;background:#171719}@media print{.folder-status{display:none}}
 /* Use the original export fonts, including when measuring print overflow. */
+.document :is(th,td)[align="center"]{text-align:center}
+.document :is(th,td)[align="right"]{text-align:right}
 .print-measure,.print-measure :is(h1,h2,h3,h4,h5,h6){font-family:"Segoe UI",Arial,sans-serif}
 .print-measure :is(pre,code){font-family:Consolas,"Courier New",monospace}
 @media print{
+  .document .mermaid-diagram svg{display:block;margin-inline:auto}
+  .document>:last-child{margin-bottom:0!important}
   .document,.document :is(h1,h2,h3,h4,h5,h6){font-family:"Segoe UI",Arial,sans-serif}
   .document :is(pre,code){font-family:Consolas,"Courier New",monospace}
 }

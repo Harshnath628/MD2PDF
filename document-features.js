@@ -110,7 +110,7 @@ export function inspectPrint(root, { paper, orientation, margin, compact }, warn
   for (const svg of root.querySelectorAll('.mermaid-diagram svg')) {
     const box = svg.viewBox.baseVal;
     if (!box.width || !box.height) continue;
-    const fit = fitDiagram(box.width, box.height, width * 96 / 25.4, (height - 12) * 96 / 25.4);
+    const fit = fitDiagram(box.width, box.height, width * 96 / 25.4, (height - 30) * 96 / 25.4);
     svg.style.setProperty('--diagram-print-width', fit.width + 'px');
     svg.style.setProperty('--diagram-print-height', fit.height + 'px');
     if (fit.scale < .65) messages.push('A large diagram will be reduced to fit one page. Landscape may improve readability.');

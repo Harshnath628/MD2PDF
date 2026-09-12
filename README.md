@@ -53,3 +53,7 @@ Print warnings estimate overflow using the chosen paper, orientation, margins an
 After uploading a Markdown file, choose **Image folder** and select the **parent of the folder containing that Markdown file**. The browser grants access to the selected folder and all its subfolders for this session. This includes sibling image folders and paths like `../images/diagram.png`. The app cannot automatically access the parent of an individually uploaded file: you must select that folder yourself.
 
 Paths are resolved relative to the matching uploaded Markdown file inside the selected tree. If no matching Markdown file is found (for example, pasted text), images are matched by unique relative path or filename. Duplicate filenames are flagged rather than guessed. Windows absolute paths can match an image within the selected tree by its unique filename. Files outside the selected tree remain inaccessible. Folder images are never uploaded. Select the folder again after reloading the app; clipboard images continue to persist independently.
+
+### Editable Word export
+Choose **Download Word** to create a local .docx using the selected paper size, orientation, margins and density. Text, headings, lists, tables and links remain editable. Images, Mermaid diagrams and equations are embedded as pictures. Print fonts (Segoe UI and Consolas) are used; Word may paginate differently from the PDF. Remote images must allow browser access; otherwise save them locally and connect their image folder.
+

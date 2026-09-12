@@ -374,6 +374,27 @@ async function printDocument() {
   finally { printing = false; input.readOnly = false; controls.forEach(control => { control.disabled = false; }); $('print').disabled = !input.value.trim(); }
 }
 $('print').onclick = printDocument;
+$('word').onclick = async () => {
+  if (printing || !input.value.trim()) return;
+  printing = true; input.readOnly = true;
+  const controls = [...document.querySelectorAll('button, select')];
+  controls.forEach(control => { control.disabled = true; });
+  try {
+    if (!await refresh()) return;
+    await document.fonts.ready;
+    status('Preparing editable Word document…');
+    checkPrintLayout();
+    const { createWord } = await import('./word-export.js');
+    const blob = await createWord(preview, { paper: $('paper').value, orientation: $('orientation').value, margin: Number($('margin').value), compact: $('density').value === 'compact' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a'); link.href = url;
+    link.download = (document.title || 'document') + '.docx';
+    document.body.append(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    status('Word downloaded. Text and tables are editable; diagrams and equations are images.');
+  } catch (error) { status('Word export failed: ' + error.message); console.error(error); }
+  finally { printing = false; input.readOnly = false; controls.forEach(control => { control.disabled = false; }); $('print').disabled = !input.value.trim(); }
+};
 input.value = SAMPLE_MARKDOWN;
 try {
   const saved = JSON.parse(localStorage.getItem(draftKey) || 'null');

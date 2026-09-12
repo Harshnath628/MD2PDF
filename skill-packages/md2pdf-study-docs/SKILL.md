@@ -43,9 +43,9 @@ Match representations to the subject: constructions/proofs for TOC, kernels and 
 
 ## Format and deliver
 
-Read both [references/formatting-reference.md](references/formatting-reference.md), the full formatting reference imported from the user's md-to-pdf-formatting skill, and [references/md2pdf-format.md](references/md2pdf-format.md), the current-app compatibility rules and math conventions, before producing or reviewing Markdown. The combined skill is self-contained; the original skill need not be installed separately.
+Read both [references/formatting-reference.md](references/formatting-reference.md), the maintained PDF/Word formatting reference, and [references/md2pdf-format.md](references/md2pdf-format.md), the current-app compatibility rules and math conventions, before producing or reviewing Markdown. The combined skill is self-contained; the original skill need not be installed separately.
 
-Apply the imported reference's supported syntax, table spacing, 72-80 character code-line guidance, Mermaid constraints, examples, and export checklist. Where it describes older app behavior, use the explicit compatibility rules instead. User instructions take precedence. Do not change unrelated copies of these rules in other projects as part of ordinary document generation.
+Apply the maintained reference's supported syntax, table spacing, readable code-line guidance, Mermaid examples, local-image workflow, and export checks. The references reflect the local PDF and editable Word implementation as of 2026-09-12; verify the deployed UI before promising online Word export. Do not promise identical PDF/Word pagination or editable Word equations/diagrams. User instructions take precedence. Do not change unrelated copies of these rules in other projects as part of ordinary document generation.
 
 Deliver a clearly named `.md` file when file creation is available, such as `cn-unit-2-solved-bank.md`. The file contains only the study document: no conversational preamble, skill frontmatter, tool directives, or outer Markdown fence. If only chat output is possible, provide copyable Markdown with an outer fence longer than any contained code fence, and explain that the wrapper is excluded when pasting.
 
