@@ -7,7 +7,13 @@ description: Create, reformat, or review Markdown for Harsh's MD2PDF app, combin
 
 Produce reusable UTF-8 Markdown that Harsh can open or paste into MD2PDF and print. This is a document-production convention, not a new exam-preparation curriculum or permission to change the website.
 
+This skill is standalone: all required study and formatting instructions are bundled here. Preparing Markdown does not require the original project, a particular filesystem path, another installed skill, an account, or a renderer. External-paper research for a new full question bank requires browsing when available; if unavailable, disclose the evidence gap and follow the study-pack standard rather than inventing findings.
+
+For other converters, use portable GFM and identify math, Mermaid, and page-break extensions. Treat documented MD2PDF controls, fonts, storage, and exports as a target profile, not universal behavior. Verify target support only when it matters to the requested output. Bundle images with relative paths; browser blob URLs and IndexedDB image IDs must be replaced with exported assets for portability. Preserve unsupported formula/diagram source and explain rendering limits. No synchronization with the original workspace is required.
+
 ## Decide what is being produced
+
+For creating a study pack, notes, or a question bank, read [references/study-pack-standard.md](references/study-pack-standard.md). It records the user's agreed two-document structure, standalone explanations, prerequisite progression, minimum 100 answered questions per unit, question ordering, and evidence-based use of PYQs and external B.Tech papers. Apply relevant defaults to the requested deliverable; formatting-only tasks do not trigger expansion or research.
 
 Use the request and existing conversation to identify subject, authorized topics, source material, and document purpose. Ask only for missing information that prevents useful work. Do not make the user complete an intake questionnaire.
 

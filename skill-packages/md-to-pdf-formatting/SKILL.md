@@ -21,3 +21,9 @@ This skill is standalone: all required instructions and examples are in this fil
 - PDF system fonts and website fonts are separate in that app to retain conversion compatibility. Do not impose those fonts on unrelated converters or override a user's font choice.
 - Explicit page breaks and folder access depend on the target. Uploading one Markdown file does not automatically grant neighboring filesystem access.
 - No synchronization with any external rules file or original workspace is required. The bundled reference is sufficient; external links are optional further reading.
+
+## Study-document integration
+
+When formatting Harsh's study packs, preserve their structure: notes with worked examples in one document and a solved question bank in another; both are topic-wise in the same prerequisite order. Within a bank preserve topic > question type > easy-to-hard ordering, stable question IDs, and each answer directly below its question. Later topics may reuse earlier concepts. Keep short explanations for easy answers and progressively fuller reasoning for harder ones; do not remove purposeful repetition or mathematical steps to save pages.
+
+Do not merge a separately requested cold test with its answer key. Formatting an existing document does not authorize adding 100 questions or conducting research. For creating new study packs, md2pdf-study-docs owns the full pedagogical standard, including the minimum 100 answered questions per unit and PYQ/external-paper analysis; use it when available or follow the user's explicit content instructions. This formatting skill remains usable by itself for other documents.

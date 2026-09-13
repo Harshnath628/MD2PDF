@@ -2,6 +2,8 @@
 
 Updated 2026-09-12 against the local application. Read [formatting-reference.md](formatting-reference.md) for the full maintained rules. Check the deployed UI before assuming the local Word export is online.
 
+The application behavior below is a documented MD2PDF target profile. This bundled reference requires no original repository or external skill. In another converter, verify extension support rather than assuming the same controls, fonts, image handling, or page-break CSS. Use portable GFM when the target is unknown, retain unsupported source, and state when visual output has not been checked. For portable bundles, supply image assets using relative paths instead of browser-only blob URLs or IndexedDB IDs. Do not impose this app's fonts on unrelated converters or override explicit user choices.
+
 ## Study-document conventions
 
 Use one title, topic headings, and stable question IDs. Keep each solved answer with its question unless asked otherwise. Prefer 2–4 concise table columns and move derivations below tables. Write one source line per prose paragraph: the app renders single newlines as breaks.

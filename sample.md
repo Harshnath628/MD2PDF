@@ -1,103 +1,185 @@
-# Markdown to PDF
+# Formatting reference
 
-### Your words, ready for paper.
+**Your words. A beautifully structured document.** Edit this sample or replace it with your Markdown, then choose **Print to PDF** or **Download Word**.
 
-Paste your Markdown, check the preview, and choose **Print to PDF**. This sample shows what your document can include. Replace it with your own text whenever you are ready.
+[Text](#text-styles) · [Tables](#tables) · [Code](#code) · [Equations](#equations) · [Diagrams](#diagrams) · [Images](#images) · [Export](#ready-to-export)
 
-## Text & structure
+## Text styles
 
-Write **bold**, *italic*, ***bold italic***, ~~strikethrough~~ and `inline code`. Add [useful links](https://www.markdownguide.org/basic-syntax/), paragraphs and horizontal rules.
+**Bold ideas**, *a little emphasis*, ***both together***, ~~a change of mind~~, and `inline code`. Unicode belongs here too: café, α, β, हिंदी. Literal prices stay literal: \$25.
 
-> A good document keeps the focus on the content.
-> Everything you see here is editable Markdown.
+> Good formatting makes an idea easier to understand.
+>
+> Separate paragraphs, clear headings and a little breathing room do the work.
 
-- Notes, reports and study guides
-  - Nested ideas stay grouped together
-- [x] Paste or open a Markdown file
-- [x] Preview tables, equations and diagrams
-- [ ] Print and choose **Save as PDF**
+### Lists with structure
 
-1. Open **Page settings** if you want a different paper size.
-2. Choose A4 or Letter, portrait or landscape, and your margins.
-3. Try **Compact** for denser notes. The same styling is used in print.
+1. Start with an idea.
+2. Give it shape.
+   - Group related details.
+   - Add a supporting example.
+     1. Explain the first step.
+     2. Show the result.
+3. Share a document worth reading.
+
+- [x] Headings, lists and quotations
+- [x] Tables, code and mathematics
+- [x] Diagrams and images
+- [ ] Your next great document
+
+#### A smaller heading
+
+Use headings to organize a report, practical file or study guide.
+
+##### A supporting detail
+
+Six heading levels let your structure stay consistent.
+
+###### The finest detail
+
+Keep the hierarchy meaningful rather than making every line a heading.
+
+---
 
 ## Tables
 
-| Feature | Markdown | Result |
-| :--- | :---: | ---: |
-| Strong emphasis | `**bold**` | **Bold** |
-| Inline equations | `$a^2+b^2=c^2$` | $a^2+b^2=c^2$ |
-| Task lists | `- [x] Done` | Completed |
+Compare information with aligned columns, formatted cells and links.
+
+| Capability | Example | Status |
+|:---|:---:|---:|
+| Emphasis | **Important** | Ready |
+| Inline code | `print("Hello")` | Ready |
+| Mathematics | $a^2+b^2=c^2$ | Ready |
+| Navigation | [Jump to diagrams](#diagrams) | Ready |
 
 ## Code
 
-```javascript
-function makeDocument(markdown) {
-  const steps = ['Paste', 'Preview', 'Print'];
-  return { markdown, steps };
-}
+Language-tagged blocks highlight syntax while preserving indentation and line breaks.
+
+```python
+def reading_time(words, words_per_minute=200):
+    # A small estimate for your next article.
+    minutes = words / words_per_minute
+    return max(1, round(minutes))
+
+print(f"About {reading_time(1200)} minutes to read")
 ```
 
-Code stays selectable in your PDF. Long lines wrap to fit the page.
+```javascript
+const document = {
+  title: "Ideas worth sharing",
+  formats: ["PDF", "Word"],
+  ready: true,
+};
+```
+
+Code remains selectable in PDF and editable in Word. Use short, readable lines when practical.
 
 ## Equations
 
-Inline math fits naturally into a sentence: $E = mc^2$. Escaped currency stays literal: \$25 and \$50.
+Inline notation fits into prose: $E=mc^2$ and $P(A\mid B)=\frac{P(A\cap B)}{P(B)}$.
 
-Display equations have space of their own:
+### A formula with room to breathe
 
 $$
-x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}
+$$
+
+### Matrices and worked steps
+
+$$
+\begin{bmatrix}1 & 2 \\ 3 & 4\end{bmatrix}
+\begin{bmatrix}5 \\ 6\end{bmatrix}
+=
+\begin{bmatrix}1(5)+2(6) \\ 3(5)+4(6)\end{bmatrix}
+=
+\begin{bmatrix}17 \\ 39\end{bmatrix}
 $$
 
 $$
 \begin{aligned}
-\nabla L(\mathbf{w}) &= \frac{1}{n}\mathbf{X}^{\mathsf{T}}(\mathbf{Xw}-\mathbf{y}) \\
-\mathbf{w}_{t+1} &= \mathbf{w}_t - \eta\nabla L(\mathbf{w}_t)
+f(x) &= x^2 + 2x + 1 \\
+     &= (x+1)^2 \\
+\int_0^1 f(x)\,dx &= \left[\frac{x^3}{3}+x^2+x\right]_0^1
+= \frac{7}{3}
 \end{aligned}
 $$
 
 ## Diagrams
 
+### Turn a process into a picture
+
 ```mermaid
 flowchart LR
-    A[Paste Markdown] --> B[Live preview]
-    B --> C{Page settings}
-    C --> D[Normal]
-    C --> E[Compact]
-    D --> F[Print to PDF]
-    E --> F
+    A[An idea] --> B[Markdown]
+    B --> C{Preview}
+    C -->|Refine| B
+    C -->|Share| D[PDF]
+    C -->|Edit further| E[Word]
 ```
+
+### Show a conversation
 
 ```mermaid
 sequenceDiagram
-    participant You
-    participant App
-    You->>App: Paste a document
-    App-->>You: Render the preview
-    You->>App: Print to PDF
-    App-->>You: Open browser print dialog
+    participant Writer
+    participant Preview
+    participant Reader
+    Writer->>Preview: Add text, equations and diagrams
+    Preview-->>Writer: Show the document
+    Writer->>Reader: Share PDF or Word
+    Reader-->>Writer: Ideas understood
 ```
+
+### Explain a system
+
+```mermaid
+classDiagram
+    Document "1" *-- "many" Section
+    Section "1" *-- "many" Figure
+    class Document {
+        title
+        exportPDF()
+        exportWord()
+    }
+    class Section {
+        heading
+        content
+    }
+```
+
+### Make proportions visible
+
+Illustrative breakdown of a document—not measured usage data.
+
+```mermaid
+pie title A balanced document
+    "Explanation" : 50
+    "Examples" : 30
+    "Visuals" : 20
+```
+
+Diagrams scale to the printable area. Keep labels concise; split a very large diagram if scaling makes it difficult to read.
 
 ## Images
 
-![A simple illustration of the paste, preview and print workflow](/sample-workflow.svg)
+![Three steps: paste your Markdown, preview the document, and print](/sample-workflow.svg)
 
-Images scale to the document width. This example is bundled with the app; remote images need an internet connection.
+*Figure 1 — From Markdown to a document you can share.*
 
----
+Paste a screenshot straight into the editor. For an uploaded Markdown file with image paths, choose **Image folder** and select the folder containing its assets. Choose a parent folder to include its subfolders. Images stay local; reconnect the folder after reloading.
 
-### Small conveniences
+```markdown
+![Network topology](images/topology.png)
+```
 
-Your draft is saved in this browser and restored when you return. **Clear** gives you a blank editor; **Undo replacement** restores the previous text after clearing, opening a file or loading this sample.
+## Links that go somewhere
 
-#### Printing tips
+Use [an external website](https://example.org), an [email link](mailto:reader@example.org), or [return to the top](#formatting-reference). Internal heading links let a reader navigate a longer document.
 
-Turn off browser headers and footers for a clean document. The browser print preview shows the final pagination; its settings can override your selections here.
+## A deliberate page break
 
-##### Explicit page breaks
-
-The next section starts on a new printed page using this Markdown-compatible HTML:
+The next section starts on a fresh exported page. On screen, this remains one continuous preview.
 
 ```html
 <div class="page-break-before"></div>
@@ -105,28 +187,17 @@ The next section starts on a new printed page using this Markdown-compatible HTM
 
 <div class="page-break-before"></div>
 
-## A fresh page
+## Ready to export
 
-This section demonstrates an explicit print page break. On screen, the preview remains one continuous document.
+| Output | What you get |
+|:---|:---|
+| **Print to PDF** | Selectable text with rendered mathematics and diagrams |
+| **Download Word** | Editable text, lists, code and tables; equations and diagrams as pictures |
 
-###### Ready to make it yours
+Choose **Page settings** for A4/Letter, portrait/landscape and margins. **Compact** makes a denser document. PDF and editable Word share styling, but their page breaks can differ.
 
-Select the sample text, paste your own Markdown, and print.
+Check any layout warnings before exporting. Browser print preview is the final PDF layout; turn off browser headers and footers for clean pages.
 
-## Links and screenshots
+Every visit opens this reference automatically. Your previous draft is available through **Restore draft**. **Load sample** returns here while editing, and **Undo replacement** restores the text it replaced.
 
-Jump to [Equations](#equations), [Diagrams](#diagrams), or [A fresh page](#a-fresh-page). External links, such as the [Markdown guide](https://www.markdownguide.org/), open separately.
-
-Paste a screenshot directly into the editor to insert it. The image is saved locally in this browser, not uploaded. Local image references only work in the browser where you pasted them.
-
-Fenced code with a language name is now highlighted:
-
-```python
-def greet(name):
-    # A small, readable example
-    return f"Hello, {name}!"
-
-print(greet("reader"))
-```
-
-The print layout check flags wide content and large diagrams. Diagrams are reduced to fit one printable page; landscape can make large diagrams easier to read. Use the browser print preview to confirm final pagination.
+**Make it yours:** select the Markdown, paste your own content, and export.

@@ -5,7 +5,8 @@ import '@fontsource/outfit/500.css';
 import '@fontsource/outfit/600.css';
 import '@fontsource/outfit/700.css';
 import '@fontsource/jetbrains-mono/400.css';
-import SAMPLE_MARKDOWN from './sample.md?raw';
+import SAMPLE_SOURCE from './sample.md?raw';
+const SAMPLE_MARKDOWN = SAMPLE_SOURCE.replace(/\r\n?/g, '\n');
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import './styles.css';
@@ -262,9 +263,10 @@ let revision = 0, timer, previous = null, printing = false;
 function status(message) { $('status').textContent = message; }
 function save() {
   try {
-    if (input.value) localStorage.setItem(draftKey, JSON.stringify({ text: input.value, settings: Object.fromEntries(settings.map(id => [id, $(id).value])) }));
+    if (input.value === SAMPLE_MARKDOWN) { /* Keep the previous draft while showing the sample. */ }
+    else if (input.value) localStorage.setItem(draftKey, JSON.stringify({ text: input.value, settings: Object.fromEntries(settings.map(id => [id, $(id).value])) }));
     else localStorage.removeItem(draftKey);
-    $('draft-status').textContent = input.value ? 'Draft saved in this browser' : 'Stored only in this browser';
+    $('draft-status').textContent = input.value === SAMPLE_MARKDOWN ? 'Sample — edit to make it yours' : input.value ? 'Draft saved in this browser' : 'Stored only in this browser';
   } catch { $('draft-status').textContent = 'Draft storage unavailable — keep this tab open'; }
   $('word-count').textContent = (input.value.trim().match(/\S+/g)?.length || 0).toLocaleString() + ' words';
 }
@@ -398,9 +400,12 @@ $('word').onclick = async () => {
 input.value = SAMPLE_MARKDOWN;
 try {
   const saved = JSON.parse(localStorage.getItem(draftKey) || 'null');
-  if (saved && typeof saved.text === 'string') {
-    input.value = saved.text;
-    for (const id of settings) if ([...$(id).options].some(option => option.value === saved.settings?.[id])) $(id).value = saved.settings[id];
+  if (saved && typeof saved.text === 'string' && saved.text.trim() && saved.text !== SAMPLE_MARKDOWN) {
+    $('restore-draft').hidden = false;
+    $('restore-draft').onclick = () => {
+      for (const id of settings) if ([...$(id).options].some(option => option.value === saved.settings?.[id])) $(id).value = saved.settings[id];
+      applySettings(); replace(saved.text); $('restore-draft').hidden = true;
+    };
   }
-} catch { status('Saved draft could not be restored.'); }
+} catch { status('Saved draft could not be read.'); }
 applySettings(); refresh();

@@ -2,6 +2,19 @@
 
 Updated 2026-09-12 against the local MD2PDF implementation. These conventions support GFM documents for Print to PDF and editable Download Word. Word export is implemented locally; verify the deployed UI before promising it is available online. Preserve source meaning and complete code when formatting.
 
+
+## Portability and scope
+
+This reference is bundled with the skill. No original repository, user profile, other skill, account, or network connection is required to read it and prepare Markdown. External documentation links are optional further reading, not required instructions.
+
+The GFM writing conventions are reusable across Markdown converters. Features described as **the app** refer specifically to the MD2PDF implementation inspected on 2026-09-12. In another converter, verify Mermaid, KaTeX, syntax highlighting, local image handling, internal links, page-break HTML, and Word export before relying on them. Do not assume identical buttons, storage limits, fonts, or layout behavior.
+
+- If the target converter is unknown, produce portable GFM and clearly identify any Mermaid, math, or page-break extensions used. Ask about the target only when it affects the requested output.
+- If Mermaid or math rendering is unavailable, retain the source and explain the limitation; use supplied/pre-rendered images when available. Do not silently discard content or claim it rendered.
+- For portable document bundles, keep Markdown and image files together with relative paths. Browser-generated blob URLs and IndexedDB image IDs must be replaced with exported image assets before moving documents elsewhere.
+- Use the target converter's supported page-break mechanism. The `page-break-before` class below requires compatible CSS; arbitrary converters will not recognize it automatically.
+- Writing or reviewing Markdown does not require running MD2PDF. If no renderer is available, deliver the Markdown with an explicit note that visual output has not been checked.
+
 ---
 
 ## 1. Supported Markdown Syntax
