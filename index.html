@@ -5,11 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0f0f10">
   <meta name="description" content="Paste Markdown. Preview your document. Print a clean PDF, right in your browser.">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="md2pdf">
+  <meta property="og:title" content="md2pdf — Markdown to PDF &amp; Word">
+  <meta property="og:description" content="Paste Markdown. Preview equations, diagrams, tables and code. Export PDF or editable Word in your browser.">
+  <meta property="og:image" content="https://md-2-pdf-pied.vercel.app/social-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="md2pdf logo: overlapping Markdown and PDF documents">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="md2pdf — Markdown to PDF &amp; Word">
+  <meta name="twitter:description" content="Turn Markdown into beautifully formatted PDF and editable Word documents.">
+  <meta name="twitter:image" content="https://md-2-pdf-pied.vercel.app/social-preview.png">
+  <meta name="twitter:image:alt" content="md2pdf logo: overlapping Markdown and PDF documents">
   <title>md2pdf</title>
 </head>
 <body>
   <header class="toolbar">
-    <div><a class="brand" href="./" aria-label="Markdown to PDF home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 12h8M8 16h8M8 8h2"/></svg>Markdown to PDF</a>
+    <div><a class="brand" href="./" aria-label="Markdown to PDF home"><img class="brand-logo" src="/brand-logo.png" width="72" height="72" alt="" fetchpriority="high">Markdown to PDF</a>
     <p class="tagline">Markdown to beautiful PDFs — with <strong>equations</strong> (LaTeX-style math), <strong>diagrams</strong> (Mermaid), tables, and code. Free, private, in your browser.</p></div>
     <input type="file" id="file" accept=".md,.markdown,.txt,text/plain,text/markdown" hidden>
   </header>

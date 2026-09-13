@@ -43,3 +43,6 @@ main{max-width:1800px;margin:auto;padding:10px 40px 24px;display:grid;grid-templ
   .document,.document :is(h1,h2,h3,h4,h5,h6){font-family:"Segoe UI",Arial,sans-serif}
   .document :is(pre,code){font-family:Consolas,"Courier New",monospace}
 }
+
+.brand-logo{width:72px;height:72px;object-fit:contain;flex-shrink:0;border-radius:10px}
+@media(max-width:700px){.brand-logo{width:52px;height:52px}}
